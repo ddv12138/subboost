@@ -7,6 +7,16 @@ import { readJsonResponse } from "@subboost/ui/product/client-response";
 import type { RefreshSubscriptionResponse, Subscription } from "@subboost/ui/dashboard/dashboard-types";
 import { LOCAL_AUTO_UPDATE_POLICY } from "@local/lib/auto-update-policy";
 
+function resolveLocalDashboardDownloadUrl(subscription: Subscription): string {
+  try {
+    const url = new URL(subscription.subscriptionUrl, window.location.href);
+    if (url.pathname.includes("/api/subscriptions/")) {
+      return `${window.location.origin}${url.pathname}${url.search}`;
+    }
+  } catch {}
+  return subscription.subscriptionUrl;
+}
+
 const localDashboardAdapter: DashboardSurfaceAdapter = {
   loginHref: "/login",
   newSubscriptionHref: "/?newSubscription=1",
@@ -39,6 +49,7 @@ const localDashboardAdapter: DashboardSurfaceAdapter = {
     });
     await readJsonResponse<{ error?: string }>(response, "保存失败");
   },
+  resolveDownloadUrl: resolveLocalDashboardDownloadUrl,
 };
 
 export default function DashboardPage() {

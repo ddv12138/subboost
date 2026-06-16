@@ -147,11 +147,22 @@ describe("local app pages and adapters", () => {
 
     renderToStaticMarkup(React.createElement(DashboardPage));
     const adapter = mocks.dashboardAdapter;
+    vi.stubGlobal("window", {
+      location: {
+        href: "http://23.80.90.37:31401/dashboard",
+        origin: "http://23.80.90.37:31401",
+      },
+    });
 
     await expect(adapter.fetchSubscriptions()).resolves.toEqual([{ id: "sub-1" }]);
     await expect(adapter.deleteSubscription("sub 1")).resolves.toBeUndefined();
     await expect(adapter.refreshSubscription("sub 1")).resolves.toEqual({ ok: true });
     await expect(adapter.updateSubscriptionSettings("sub 1", { name: "Sub" })).resolves.toBeUndefined();
+    expect(
+      adapter.resolveDownloadUrl({
+        subscriptionUrl: "http://localhost:3001/api/subscriptions/token-1/config.yaml",
+      })
+    ).toBe("http://23.80.90.37:31401/api/subscriptions/token-1/config.yaml");
     expect(adapter.autoUpdateIntervalPolicy).toEqual({
       defaultHours: 12,
       minHours: 0.1,
