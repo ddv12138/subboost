@@ -58,6 +58,17 @@ function mergeNodeSourceIds(existing: ParsedNode, sourceIds: Set<string>): Parse
   return { ...existingRecord, [SOURCE_IDS_KEY]: Array.from(sourceIds) } as unknown as ParsedNode;
 }
 
+function filterDialerProxyGroupsByAvailableNames(
+  dialerProxyGroups: StoreState["dialerProxyGroups"],
+  availableNames: Set<string>
+): StoreState["dialerProxyGroups"] {
+  return dialerProxyGroups.map((group) => ({
+    ...group,
+    relayNodes: group.relayNodes.filter((name) => name === "DIRECT" || availableNames.has(name)),
+    targetNodes: group.targetNodes.filter((name) => availableNames.has(name)),
+  }));
+}
+
 export function createSourceActions(set: SetState, get: GetState, setAndGenerateConfig: SetAndGenerateConfig): SourceActions {
   return {
     // 设置订阅源
@@ -87,11 +98,7 @@ export function createSourceActions(set: SetState, get: GetState, setAndGenerate
           nextListenerPorts[name] = port;
         }
 
-        const nextDialerProxyGroups = state.dialerProxyGroups.map((g) => ({
-          ...g,
-          relayNodes: g.relayNodes.filter((n) => n === "DIRECT" || availableNames.has(n)),
-          targetNodes: g.targetNodes.filter((n) => availableNames.has(n)),
-        }));
+        const nextDialerProxyGroups = filterDialerProxyGroupsByAvailableNames(state.dialerProxyGroups, availableNames);
 
         return {
           sources,
@@ -203,11 +210,7 @@ export function createSourceActions(set: SetState, get: GetState, setAndGenerate
               nextListenerPorts[name] = port;
             }
 
-            const nextDialerProxyGroups = state.dialerProxyGroups.map((g) => ({
-              ...g,
-              relayNodes: g.relayNodes.filter((n) => n === "DIRECT" || availableNames.has(n)),
-              targetNodes: g.targetNodes.filter((n) => availableNames.has(n)),
-            }));
+            const nextDialerProxyGroups = filterDialerProxyGroupsByAvailableNames(state.dialerProxyGroups, availableNames);
 
             return {
               nodes: baseNodes,
@@ -590,12 +593,14 @@ export function createSourceActions(set: SetState, get: GetState, setAndGenerate
           if (typeof port !== "number" || !Number.isInteger(port)) continue;
           nextListenerPorts[name] = port;
         }
+        const nextDialerProxyGroups = filterDialerProxyGroupsByAvailableNames(state.dialerProxyGroups, availableNames);
 
         return {
           nodes: normalized,
           parseErrors: allErrors,
           isLoading: false,
           listenerPorts: nextListenerPorts,
+          dialerProxyGroups: nextDialerProxyGroups,
           sources: state.sources.map((s) => {
             const meta = sourceMeta.get(s.id);
             if (!meta) return s;

@@ -207,7 +207,7 @@ describe("createSourceActions parseMultipleSources", () => {
     });
   });
 
-  it("merges duplicate parsed nodes from multiple sources and prunes stale listener ports", async () => {
+  it("merges duplicate parsed nodes and prunes stale listener ports and dialer nodes", async () => {
     const duplicate = node("Duplicate", {
       server: "same.example.com",
       _originName: "Duplicate",
@@ -225,6 +225,15 @@ describe("createSourceActions parseMultipleSources", () => {
         Duplicate: 41000,
         Stale: 41001,
       },
+      dialerProxyGroups: [
+        {
+          id: "dialer-1",
+          name: "Relay",
+          type: "select",
+          relayNodes: ["Duplicate", "DIRECT", "Stale"],
+          targetNodes: ["Duplicate", "Stale"],
+        },
+      ],
     });
 
     await actions.parseMultipleSources(sources);
@@ -236,6 +245,10 @@ describe("createSourceActions parseMultipleSources", () => {
       _sourceIds: ["s1", "s2"],
     });
     expect(getState().listenerPorts).toEqual({ Duplicate: 41000 });
+    expect(getState().dialerProxyGroups[0]).toMatchObject({
+      relayNodes: ["Duplicate", "DIRECT"],
+      targetNodes: ["Duplicate"],
+    });
     expect(getState().parseErrors).toEqual(["源 #1: first warning"]);
     expect(getState().sources).toEqual([
       expect.objectContaining({ id: "s1", parsed: true, parsing: false, nodeCount: 1 }),
