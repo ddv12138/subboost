@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronDown, ChevronRight, Pencil, RotateCcw } from "lucide-react";
+import { ChevronDown, ChevronRight, RotateCcw } from "lucide-react";
 import { Badge } from "@subboost/ui/components/ui/badge";
 import { confirmDialog } from "@subboost/ui/components/ui/confirm-dialog";
 import {

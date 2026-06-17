@@ -32,10 +32,6 @@ function getNodeSourceIds(node: ParsedNode): string[] {
     .map((s) => s.trim());
 }
 
-function escapeRegExp(input: string): string {
-  return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 function compileRegex(pattern?: string): RegExp | null {
   const raw = typeof pattern === "string" ? pattern.trim() : "";
   if (!raw) return null;

@@ -1,9 +1,6 @@
 import type { ConfigState } from "./definitions";
 import { safeParseJsonObject } from "@subboost/core/json";
-import {
-  CONFIG_DRAFT_GUEST_STORAGE_NAME,
-  getConfigDraftStorageNameForUser,
-} from "./draft-storage";
+import { getConfigDraftStorageNameForUser } from "./draft-storage";
 
 export {
   CONFIG_DRAFT_GUEST_STORAGE_NAME,

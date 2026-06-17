@@ -38,7 +38,6 @@ import {
 
 export function ProxyGroupsCustomGroupsPanel() {
   const {
-    ruleProviderBaseUrl,
     enabledProxyGroups,
     hiddenProxyGroups,
     proxyGroupNameOverrides,

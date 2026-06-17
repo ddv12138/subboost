@@ -147,21 +147,21 @@ describe("proxy group rules library search", () => {
   });
 
   it("loads total rules as helper copy", async () => {
-    let hook = useRenderedHook();
+    useRenderedHook();
     await flushAsync();
-    hook = useRenderedHook();
+    const hook = useRenderedHook();
 
     expect(mocks.bag.rulesApi.getTotalRules).toHaveBeenCalled();
     expect(hook.totalRules).toBe(100);
   });
 
   it("searches after debounce and records success metadata", async () => {
-    let hook = useRenderedHook();
-    hook.setRuleSearchKeyword(" openai ");
-    hook = useRenderedHook();
+    const initialHook = useRenderedHook();
+    initialHook.setRuleSearchKeyword(" openai ");
+    useRenderedHook();
     vi.advanceTimersByTime(300);
     await flushAsync();
-    hook = useRenderedHook();
+    const hook = useRenderedHook();
 
     expect(mocks.bag.rulesApi.searchRules).toHaveBeenCalledWith(
       expect.objectContaining({ keyword: "openai", page: 1, size: 50 })
@@ -192,17 +192,17 @@ describe("proxy group rules library search", () => {
         totalRules: 120,
       });
 
-    let hook = useRenderedHook();
-    hook.setRuleSearchKeyword("ai");
-    hook = useRenderedHook();
+    const initialHook = useRenderedHook();
+    initialHook.setRuleSearchKeyword("ai");
+    useRenderedHook();
     vi.advanceTimersByTime(300);
     await flushAsync();
-    hook = useRenderedHook();
+    const firstPageHook = useRenderedHook();
 
-    expect(hook.canLoadMore).toBe(true);
-    hook.handleLoadMore();
+    expect(firstPageHook.canLoadMore).toBe(true);
+    firstPageHook.handleLoadMore();
     await flushAsync();
-    hook = useRenderedHook();
+    const hook = useRenderedHook();
 
     expect(mocks.bag.rulesApi.searchRules).toHaveBeenLastCalledWith(
       expect.objectContaining({ keyword: "ai", page: 2, size: 50 })
@@ -216,12 +216,12 @@ describe("proxy group rules library search", () => {
       getTotalRules: vi.fn(async () => null),
     };
 
-    let hook = useRenderedHook();
-    hook.setRuleSearchKeyword("openai");
-    hook = useRenderedHook();
+    const initialHook = useRenderedHook();
+    initialHook.setRuleSearchKeyword("openai");
+    useRenderedHook();
     vi.advanceTimersByTime(300);
     await flushAsync();
-    hook = useRenderedHook();
+    const hook = useRenderedHook();
 
     expect(hook.searchResults).toEqual([]);
     expect(hook.rulesSearchError).toBe("规则库接口暂不可用");
@@ -254,29 +254,29 @@ describe("proxy group rules library search", () => {
       })
       .mockRejectedValue("boom");
 
-    let hook = useRenderedHook();
-    hook.setRuleSearchKeyword("missing");
-    hook = useRenderedHook();
+    const initialHook = useRenderedHook();
+    initialHook.setRuleSearchKeyword("missing");
+    useRenderedHook();
     vi.advanceTimersByTime(300);
     await flushAsync();
-    hook = useRenderedHook();
+    const emptyResultHook = useRenderedHook();
 
-    expect(hook.searchResults).toEqual([]);
-    expect(hook.totalMatched).toBeNull();
-    expect(hook.rulesSearchSource).toBeNull();
+    expect(emptyResultHook.searchResults).toEqual([]);
+    expect(emptyResultHook.totalMatched).toBeNull();
+    expect(emptyResultHook.rulesSearchSource).toBeNull();
     expect(mocks.bag.interactions.rulesSearchCompleted).toHaveBeenCalledWith({
       result: "noResult",
       resultSource: "unknown",
       resultCount: 0,
     });
 
-    hook.setRuleSearchKeyword("again");
-    hook = useRenderedHook();
+    emptyResultHook.setRuleSearchKeyword("again");
+    useRenderedHook();
     vi.advanceTimersByTime(300);
     await flushAsync();
-    hook = useRenderedHook();
+    const failedHook = useRenderedHook();
 
-    expect(hook.rulesSearchError).toBe("搜索失败");
+    expect(failedHook.rulesSearchError).toBe("搜索失败");
   });
 
   it("guards load-more calls while busy or unavailable", () => {
@@ -315,23 +315,23 @@ describe("proxy group rules library search", () => {
       })
       .mockRejectedValueOnce("offline");
 
-    let hook = useRenderedHook();
-    hook.setRuleSearchKeyword("ai");
-    hook = useRenderedHook();
+    const initialHook = useRenderedHook();
+    initialHook.setRuleSearchKeyword("ai");
+    useRenderedHook();
     vi.advanceTimersByTime(300);
     await flushAsync();
-    hook = useRenderedHook();
+    const firstPageHook = useRenderedHook();
 
-    hook.handleLoadMore();
+    firstPageHook.handleLoadMore();
     await flushAsync();
-    hook = useRenderedHook();
-    expect(hook.searchResults.map((item) => item.id)).toEqual(["a", "b"]);
-    expect(hook.rulesSearchSource).toBe("unavailable");
-    expect(hook.totalRules).toBe(101);
+    const mergedHook = useRenderedHook();
+    expect(mergedHook.searchResults.map((item) => item.id)).toEqual(["a", "b"]);
+    expect(mergedHook.rulesSearchSource).toBe("unavailable");
+    expect(mergedHook.totalRules).toBe(101);
 
-    hook.handleLoadMore();
+    mergedHook.handleLoadMore();
     await flushAsync();
-    hook = useRenderedHook();
-    expect(hook.rulesSearchError).toBe("加载失败");
+    const failedHook = useRenderedHook();
+    expect(failedHook.rulesSearchError).toBe("加载失败");
   });
 });

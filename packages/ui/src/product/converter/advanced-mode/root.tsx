@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useConfigStore } from "@subboost/ui/store/config-store";
 import { DialerProxyGroupsSection } from "./sections/dialer-proxy-groups-section";
 import { DnsSection } from "./sections/dns-section";
 import { FilteredProxyGroupsSection } from "./sections/filtered-proxy-groups-section";

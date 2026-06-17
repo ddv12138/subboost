@@ -26,7 +26,6 @@ import type { ConfigActions, SubscriptionSource } from "./definitions";
 import {
   fetchUrlContentInBrowser,
   getNodeSourceIds,
-  makeUniqueName,
   ORIGIN_NAME_KEY,
   SOURCE_IDS_KEY,
   withNodeSourceId,

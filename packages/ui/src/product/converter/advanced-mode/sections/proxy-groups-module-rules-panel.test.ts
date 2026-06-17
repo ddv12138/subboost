@@ -236,7 +236,7 @@ describe("ProxyGroupsModuleRulesPanel", () => {
 
   it("moves, removes, restores, and adds CN experimental and candidate rule sets", () => {
     const props = baseProps();
-    let result = renderPanel(props, {
+    renderPanel(props, {
       0: [{ id: "candidate-1", name: "Candidate", behavior: "domain", path: "rule-set/candidate.mrs", parentRuleId: "parent" }],
     });
 
@@ -256,8 +256,8 @@ describe("ProxyGroupsModuleRulesPanel", () => {
     ]);
 
     const disabledProps = baseProps({ experimentalCnUseCnRuleSet: false });
-    result = renderPanel(disabledProps);
-    expect(result.html).toContain("已移除");
+    const disabledResult = renderPanel(disabledProps);
+    expect(disabledResult.html).toContain("已移除");
     mocks.captures.buttons.find((button) => button["aria-label"] === "恢复 中国业务实验规则 规则集").onClick();
     expect(disabledProps.onChangeExperimentalCnUseCnRuleSet).toHaveBeenCalledWith(true);
   });

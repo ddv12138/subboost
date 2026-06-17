@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { Badge } from "@subboost/ui/components/ui/badge";
 
 export interface SectionHeaderProps {
   expanded: boolean;

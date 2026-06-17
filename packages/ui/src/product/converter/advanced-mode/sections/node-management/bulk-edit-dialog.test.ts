@@ -197,19 +197,19 @@ describe("NodeManagementBulkEditDialog", () => {
   });
 
   it("shows regex errors, skipped nodes, empty names, and no-match previews", () => {
-    let result = renderDialog({ 0: "[", 2: "(" });
-    expect(result.html).toContain("无效正则");
+    const invalidRegexResult = renderDialog({ 0: "[", 2: "(" });
+    expect(invalidRegexResult.html).toContain("无效正则");
     buttonByText("完成").onClick();
-    expect(result.props.bulkRenameNodes).not.toHaveBeenCalled();
+    expect(invalidRegexResult.props.bulkRenameNodes).not.toHaveBeenCalled();
 
-    result = renderDialog({ 0: "Locked", 2: "Locked", 3: "Open" });
-    expect(result.html).toContain("跳过：当前节点命名模板无法解析");
+    const skippedNodesResult = renderDialog({ 0: "Locked", 2: "Locked", 3: "Open" });
+    expect(skippedNodesResult.html).toContain("跳过：当前节点命名模板无法解析");
 
-    result = renderDialog({ 0: "Beta", 2: ".*", 3: "" });
-    expect(result.html).toContain("跳过：新名称为空");
+    const emptyNameResult = renderDialog({ 0: "Beta", 2: ".*", 3: "" });
+    expect(emptyNameResult.html).toContain("跳过：新名称为空");
 
-    result = renderDialog({ 0: "Missing" });
-    expect(result.html).toContain("暂无匹配节点");
+    const noMatchResult = renderDialog({ 0: "Missing" });
+    expect(noMatchResult.html).toContain("暂无匹配节点");
   });
 
   it("auto-fills listener ports and clears listener-port UI state", () => {
@@ -227,70 +227,70 @@ describe("NodeManagementBulkEditDialog", () => {
   });
 
   it("validates listener-port input and conflicts", () => {
-    let result = renderDialog({ 0: "Alpha", 6: "70000" });
+    renderDialog({ 0: "Alpha", 6: "70000" });
     buttonByText("自动填充监听端口").onClick();
     expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "起始监听端口需为 1-65535 的整数", variant: "warning" }));
 
-    result = renderDialog({ 0: "Alpha", 6: "" });
+    renderDialog({ 0: "Alpha", 6: "" });
     buttonByText("自动填充监听端口").onClick();
     expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "起始监听端口需为 1-65535 的整数", variant: "warning" }));
 
-    result = renderDialog({ 0: "Alpha", 6: "abc" });
+    renderDialog({ 0: "Alpha", 6: "abc" });
     buttonByText("自动填充监听端口").onClick();
     expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "起始监听端口需为 1-65535 的整数", variant: "warning" }));
 
-    result = renderDialog({ 0: "Alpha|Beta", 6: "65535" });
+    renderDialog({ 0: "Alpha|Beta", 6: "65535" });
     buttonByText("自动填充监听端口").onClick();
     expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "监听端口超出范围", variant: "warning" }));
 
-    result = renderDialog(
+    const conflictResult = renderDialog(
       { 0: "Alpha|Beta", 6: "42000" },
       { listenerPorts: { Other: 42001 } },
     );
     buttonByText("自动填充监听端口").onClick();
     expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "监听端口冲突：42001", variant: "destructive" }));
-    expect(result.props.bulkSetListenerPorts).not.toHaveBeenCalled();
+    expect(conflictResult.props.bulkSetListenerPorts).not.toHaveBeenCalled();
 
-    result = renderDialog({ 0: "Missing", 6: "42000" });
+    renderDialog({ 0: "Missing", 6: "42000" });
     buttonByText("自动填充监听端口").onClick();
     expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "暂无匹配节点", variant: "warning" }));
   });
 
   it("bulk-removes listener ports and hides listener controls when disabled", () => {
-    let result = renderDialog({ 0: "Alpha|Beta" });
+    const enabledResult = renderDialog({ 0: "Alpha|Beta" });
     buttonByText("批量删除监听端口").onClick();
-    expect(result.props.bulkSetListenerPorts).toHaveBeenCalledWith({
+    expect(enabledResult.props.bulkSetListenerPorts).toHaveBeenCalledWith({
       "[HK] Alpha  One": null,
       "Beta  Two": null,
     });
-    expect(result.props.onClearListenerPortUiState).toHaveBeenCalledWith(["[HK] Alpha  One", "Beta  Two"]);
+    expect(enabledResult.props.onClearListenerPortUiState).toHaveBeenCalledWith(["[HK] Alpha  One", "Beta  Two"]);
     expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "已批量删除监听端口 2 个节点", variant: "success" }));
 
-    result = renderDialog({}, { listenerPortEnabled: false });
-    expect(result.html).not.toContain("监听端口批量操作");
+    const disabledResult = renderDialog({}, { listenerPortEnabled: false });
+    expect(disabledResult.html).not.toContain("监听端口批量操作");
   });
 
   it("handles no-op previews, empty node names, disabled actions, and listener-port reservations", () => {
-    let result = renderDialog(
+    const noOpResult = renderDialog(
       { 0: "Alpha", 4: false, 5: false, 6: "43000" },
       { nodes: [{ name: "" } as any, nodes[0], nodes[1]], listenerPorts: { "[HK] Alpha  One": 42000, Other: "bad" as any } },
     );
-    expect(result.html).toContain("无变更");
+    expect(noOpResult.html).toContain("无变更");
     buttonByText("完成").onClick();
-    expect(result.props.bulkRenameNodes).not.toHaveBeenCalled();
-    expect(result.props.onOpenChange).toHaveBeenCalledWith(false);
+    expect(noOpResult.props.bulkRenameNodes).not.toHaveBeenCalled();
+    expect(noOpResult.props.onOpenChange).toHaveBeenCalledWith(false);
 
     buttonByText("自动填充监听端口").onClick();
-    expect(result.props.bulkSetListenerPorts).toHaveBeenCalledWith({ "[HK] Alpha  One": 43000 });
+    expect(noOpResult.props.bulkSetListenerPorts).toHaveBeenCalledWith({ "[HK] Alpha  One": 43000 });
 
-    result = renderDialog({ 0: "[", 6: "42000" });
+    const invalidRegexResult = renderDialog({ 0: "[", 6: "42000" });
     buttonByText("自动填充监听端口").onClick();
     buttonByText("批量删除监听端口").onClick();
     buttonByText("完成").onClick();
-    expect(result.props.bulkSetListenerPorts).not.toHaveBeenCalled();
-    expect(result.props.bulkRenameNodes).not.toHaveBeenCalled();
+    expect(invalidRegexResult.props.bulkSetListenerPorts).not.toHaveBeenCalled();
+    expect(invalidRegexResult.props.bulkRenameNodes).not.toHaveBeenCalled();
 
-    result = renderDialog({ 0: "Missing" });
+    renderDialog({ 0: "Missing" });
     buttonByText("批量删除监听端口").onClick();
     expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "暂无匹配节点", variant: "warning" }));
   });

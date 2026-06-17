@@ -107,8 +107,6 @@ export function VisualGraph() {
   );
 
   // 节点名称列表
-  const nodeNames = React.useMemo(() => nodes.map((n) => n.name), [nodes]);
-
   // 生成当前配置下的代理组（用于显示“默认选中项”）
   const generatedProxyGroups = React.useMemo(() => {
     if (nodes.length === 0) return [];

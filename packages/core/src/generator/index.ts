@@ -25,7 +25,6 @@ import type { ClashConfig, UserConfig, TemplateType, ProxyGroup } from "@subboos
 import type { CustomProxyGroup } from "@subboost/core/types/config";
 import type { DialerProxyGroup, ModuleRuleOverride } from "@subboost/core/types/template-config";
 import type { FilteredProxyGroup } from "@subboost/core/types/filtered-proxy-group";
-import { TEMPLATES } from "../templates";
 import { collectDnsPolicyEntries, configToYaml } from "./yaml";
 import type { ModuleRuleExclusions } from "./module-rules";
 import { isMihomoSupportedProxyNode, normalizeMihomoVlessForGeneration } from "@subboost/core/mihomo/proxy-sanitizer";
@@ -181,9 +180,6 @@ export function generateClashConfig(options: GenerateOptions): ClashConfig {
     moduleRuleExclusions,
     proxyGroupNameOverrides,
   } = options;
-  
-  // 获取模板配置
-  const templateConfig = TEMPLATES[template];
   
   // 合并用户配置
   const config: UserConfig = {

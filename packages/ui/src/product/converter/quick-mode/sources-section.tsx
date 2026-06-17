@@ -258,7 +258,6 @@ export function SourcesSection() {
       <div className="flex flex-col gap-2">
         {sources.map((source, index) => {
           const typeInfo = sourceTypeInfo[source.type];
-          const TypeIcon = typeInfo.icon;
           const sourceDisplayLabel = buildSourceDisplayLabel({
             typeLabel: typeInfo.label,
             tag: source.tag,
