@@ -62,6 +62,7 @@ npm run check:local-app
 - Deployment docs: [https://docs.subboost.org](https://docs.subboost.org)
 - Release announcements: [docs/release-notes.md](./docs/release-notes.md)
 - Changelog: [https://subboost.org/faq](https://subboost.org/faq)
+- Community feedback: [LINUX DO](https://linux.do/) & [IDC Flare](https://idcflare.com/); thanks to everyone in the forums for the active discussion and feedback.
 
 ## License
 

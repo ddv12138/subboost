@@ -62,6 +62,7 @@ npm run check:local-app
 - 部署文档：[https://docs.subboost.org](https://docs.subboost.org)
 - 发行公告：[docs/release-notes.md](./docs/release-notes.md)
 - 更新日志：[https://subboost.org/faq](https://subboost.org/faq)
+- 社区反馈：[LINUX DO](https://linux.do/) & [IDC Flare](https://idcflare.com/)；同时感谢论坛中小伙伴们的积极讨论和反馈
 
 ## 开源许可
 
