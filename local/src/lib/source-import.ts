@@ -1,5 +1,4 @@
 import { lookup } from "node:dns/promises";
-import { isIP } from "node:net";
 import {
   createSubscriptionImportErrorInfo,
   inferSubscriptionImportErrorCategory,
@@ -13,6 +12,7 @@ import {
   type SourceImportTransportRequest,
   type SourceImportTransportResult,
 } from "@subboost/server-core/subscription";
+import { resolveHostnameByDoh } from "@subboost/server-core/subscription/doh-resolver";
 import {
   isPrivateOrReservedIp,
   normalizeResolvedIpAddresses,
@@ -68,42 +68,6 @@ function normalizeHostname(hostname: string): string {
   return hostname.replace(/^\[|\]$/g, "").toLowerCase();
 }
 
-async function resolveHostnameByDohDirect(hostname: string): Promise<string[]> {
-  const out = new Set<string>();
-
-  for (const type of ["A", "AAAA"]) {
-    const url = `https://dns.google/resolve?name=${encodeURIComponent(hostname)}&type=${type}`;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), DOH_TIMEOUT_MS);
-    let response: Response | null = null;
-    try {
-      response = await fetch(url, {
-        method: "GET",
-        headers: {
-          Accept: "application/dns-json",
-          "User-Agent": "SubBoost Local DoH/1.0",
-        },
-        redirect: "manual",
-        signal: controller.signal,
-      });
-    } catch {
-      response = null;
-    } finally {
-      clearTimeout(timer);
-    }
-    if (!response?.ok) continue;
-
-    const body = (await response.json().catch(() => null)) as { Answer?: Array<{ data?: unknown }> } | null;
-    if (!body || !Array.isArray(body.Answer)) continue;
-    for (const answer of body.Answer) {
-      const data = typeof answer?.data === "string" ? answer.data.trim() : "";
-      if (data && isIP(data)) out.add(data);
-    }
-  }
-
-  return Array.from(out);
-}
-
 async function validatePublicFetchTarget(url: string): Promise<SourceImportTransportResult | null> {
   let parsed: URL;
   try {
@@ -132,7 +96,10 @@ async function validatePublicFetchTarget(url: string): Promise<SourceImportTrans
   const records = await lookup(hostname, { all: true, verbatim: true }).catch(() => []);
   const addresses = normalizeResolvedIpAddresses(records.map((record) => record.address));
   const finalAddresses = shouldRecheckFakeIpDnsAnswers(addresses)
-    ? selectDnsAddressesAfterFakeIpRecheck(addresses, await resolveHostnameByDohDirect(hostname))
+    ? selectDnsAddressesAfterFakeIpRecheck(
+        addresses,
+        await resolveHostnameByDoh(hostname, { timeoutMs: DOH_TIMEOUT_MS })
+      )
     : addresses;
   const addressesToCheck = finalAddresses.length > 0 ? finalAddresses : addresses;
   if (addressesToCheck.some((address) => isPrivateOrReservedIp(address))) {

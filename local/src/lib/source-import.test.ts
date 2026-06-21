@@ -22,6 +22,26 @@ function response(body: string, init: ResponseInit = {}) {
   return new Response(body, init);
 }
 
+function dnsResponse(addresses: string[]): Response {
+  const question = new Uint8Array([
+    3, 97, 112, 105, 4, 100, 108, 101, 114, 2, 105, 111, 0, 0, 1, 0, 1,
+  ]);
+  const answers: number[] = [];
+  for (const address of addresses) {
+    answers.push(0xc0, 0x0c, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x3c, 0x00, 0x04);
+    answers.push(...address.split(".").map((part) => Number(part)));
+  }
+  const out = new Uint8Array(12 + question.length + answers.length);
+  const view = new DataView(out.buffer);
+  view.setUint16(0, 0);
+  view.setUint16(2, 0x8180);
+  view.setUint16(4, 1);
+  view.setUint16(6, addresses.length);
+  out.set(question, 12);
+  out.set(answers, 12 + question.length);
+  return new Response(out, { status: 200 });
+}
+
 async function runTransport(url: string, overrides: Record<string, unknown> = {}) {
   mocks.importSubscriptionFromUrl.mockImplementationOnce(async (request, options) => {
     return options.fetchText({
@@ -91,8 +111,8 @@ describe("local source import transport", () => {
   it("rechecks fake-ip DNS answers with DoH before fetching the subscription", async () => {
     mocks.lookup.mockResolvedValueOnce([{ address: "198.18.3.6" }]);
     vi.mocked(globalThis.fetch)
-      .mockResolvedValueOnce(response(JSON.stringify({ Answer: [{ data: "93.184.216.34" }] }), { status: 200 }))
-      .mockResolvedValueOnce(response(JSON.stringify({ Answer: [] }), { status: 200 }))
+      .mockResolvedValueOnce(dnsResponse(["93.184.216.34"]))
+      .mockResolvedValueOnce(dnsResponse([]))
       .mockResolvedValueOnce(response("ss://node", { status: 200 }));
 
     await expect(runTransport("https://api.dler.io/sub")).resolves.toMatchObject({
@@ -101,8 +121,15 @@ describe("local source import transport", () => {
     });
     expect(globalThis.fetch).toHaveBeenNthCalledWith(
       1,
-      expect.stringContaining("https://dns.google/resolve?name=api.dler.io&type=A"),
-      expect.objectContaining({ method: "GET" })
+      "https://doh.pub/dns-query",
+      expect.objectContaining({
+        method: "POST",
+        headers: {
+          Accept: "application/dns-message",
+          "Content-Type": "application/dns-message",
+        },
+        body: expect.any(ArrayBuffer),
+      })
     );
     expect(globalThis.fetch).toHaveBeenNthCalledWith(
       3,
@@ -114,8 +141,8 @@ describe("local source import transport", () => {
   it("keeps blocking fake-ip DNS answers when DoH confirms an unsafe target", async () => {
     mocks.lookup.mockResolvedValueOnce([{ address: "198.18.3.6" }]);
     vi.mocked(globalThis.fetch)
-      .mockResolvedValueOnce(response(JSON.stringify({ Answer: [{ data: "10.0.0.2" }] }), { status: 200 }))
-      .mockResolvedValueOnce(response(JSON.stringify({ Answer: [] }), { status: 200 }));
+      .mockResolvedValueOnce(dnsResponse(["10.0.0.2"]))
+      .mockResolvedValueOnce(dnsResponse([]));
 
     await expect(runTransport("https://fake-ip-private.example/sub")).resolves.toMatchObject({
       ok: false,
