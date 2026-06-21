@@ -92,6 +92,8 @@ function renderSection(overrides: Record<string, unknown> = {}) {
     experimentalCnUseCnRuleSet: true,
     ruleOrder: ["module:geo", "custom:one"],
     setRuleOrder: vi.fn(),
+    allRulesOrderEditingEnabled: false,
+    setAllRulesOrderEditingEnabled: vi.fn(),
     ...overrides,
   };
   stateMock.setter.mockClear();
@@ -138,15 +140,17 @@ describe("RulesManagementSection", () => {
     const tree = renderSection();
     const text = collectText(tree);
     const header = collectElements(tree, (element) => element.props.title === "规则管理")[0];
+    const switchElement = collectElements(tree, (element) => Boolean((element.props as any).onCheckedChange))[0];
     const orderInputs = collectElements(tree, (element) => (element.props as any).title === "最终规则行号（1=最前）");
 
     expect(header.props.title).toBe("规则管理");
-    expect(collectText(header.props.badge)).toContain("可调 2 / 全部 3");
-    expect(text).toContain("可移动任意非 MATCH 规则");
+    expect(collectText(header.props.badge)).toContain("可调 1 / 全部 3");
+    expect(text).toContain("默认只能调整自定义规则顺序。");
     expect(text).toContain("系统 GEO");
     expect(text).toContain("自定义规则");
     expect(text).toContain("no-resolve");
-    expect(orderInputs.map((input) => input.props.disabled)).toEqual([false, false, true]);
+    expect(switchElement.props.disabled).toBe(false);
+    expect(orderInputs.map((input) => input.props.disabled)).toEqual([true, false, true]);
     expect(mocks.buildGeneratedRuleEntries).toHaveBeenCalledWith(
       expect.objectContaining({
         enabledModules: ["core"],
@@ -179,7 +183,7 @@ describe("RulesManagementSection", () => {
     ];
 
     const defaultTree = renderSection();
-    const allRulesTree = renderSection();
+    const allRulesTree = renderSection({ allRulesOrderEditingEnabled: true });
     const detail = collectElements(
       defaultTree,
       (element) =>
@@ -260,7 +264,7 @@ describe("RulesManagementSection", () => {
       },
       {
         key: "module:education:scholar",
-        editable: true,
+        editable: false,
         summary: "Scholar",
         sourceLabel: "📚 教育学术",
         target: "💬 自定义1",
@@ -285,6 +289,33 @@ describe("RulesManagementSection", () => {
     expect(text).toContain("📚 教育学术");
     expect(text).toContain("💬 自定义1");
     expect(text).not.toContain("自定义分组 ·");
+  });
+
+  it("confirms before enabling all-rules order mode and disables without confirmation", async () => {
+    const switchElement = collectElements(renderSection(), (element) => Boolean((element.props as any).onCheckedChange))[0];
+
+    mocks.confirmDialog.mockResolvedValueOnce(false);
+    await switchElement.props.onCheckedChange(true);
+    expect(mocks.store.setAllRulesOrderEditingEnabled).not.toHaveBeenCalled();
+
+    mocks.confirmDialog.mockResolvedValueOnce(true);
+    await switchElement.props.onCheckedChange(true);
+    expect(mocks.confirmDialog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "开启“调整所有规则顺序”？",
+        cancelText: "保持默认",
+        confirmText: "继续开启",
+        variant: "warning",
+      })
+    );
+    expect(mocks.store.setAllRulesOrderEditingEnabled).toHaveBeenCalledWith(true);
+
+    const enabledSwitch = collectElements(
+      renderSection({ allRulesOrderEditingEnabled: true }),
+      (element) => Boolean((element.props as any).onCheckedChange)
+    )[0];
+    await enabledSwitch.props.onCheckedChange(false);
+    expect(mocks.store.setAllRulesOrderEditingEnabled).toHaveBeenCalledWith(false);
   });
 
   it("moves editable rules by buttons, absolute order input, blur, and escape cleanup", () => {
@@ -327,6 +358,8 @@ describe("RulesManagementSection", () => {
       experimentalCnUseCnRuleSet: false,
       ruleOrder: [],
       setRuleOrder: vi.fn(),
+      allRulesOrderEditingEnabled: false,
+      setAllRulesOrderEditingEnabled: vi.fn(),
     };
     const tree = RulesManagementSection({ isExpanded: false, onToggle: vi.fn() });
     const header = collectElements(tree, (element) => element.props.title === "规则管理")[0];

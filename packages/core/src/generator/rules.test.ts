@@ -56,6 +56,8 @@ describe("rule generator", () => {
     });
     const texts = entries.map((entry) => entry.text);
     const customIpEntry = entries.find((entry) => entry.key === "custom-rule:ip-rule");
+    const customRuleSetEntry = entries.find((entry) => entry.key === "custom-rule-set:media-rule");
+    const appleTvPlusEntry = entries.find((entry) => entry.key === "module:streaming-west:apple-tvplus");
 
     expect(resolveModuleName("cn", { cn: "CN Direct" })).toBe("🔒 CN Direct");
     expect(texts).toContain("DOMAIN-SUFFIX,example.com,DIRECT");
@@ -66,9 +68,12 @@ describe("rule generator", () => {
     });
     expect(texts).toContain("RULE-SET,media-rule,Media,no-resolve");
     expect(texts).toContain("RULE-SET,apple-tvplus,📺 Streaming");
-    expect(entries.find((entry) => entry.text === "RULE-SET,apple-tvplus,📺 Streaming")).toMatchObject({
+    expect(customIpEntry).toMatchObject({ editable: true });
+    expect(customRuleSetEntry).toMatchObject({ editable: true });
+    expect(appleTvPlusEntry).toMatchObject({
       key: "module:streaming-west:apple-tvplus",
       kind: "module",
+      editable: false,
     });
     expect(entries.some((entry) => entry.key === "special:apple-tvplus")).toBe(false);
     expect(texts).toContain("RULE-SET,cn,🔒 CN Direct");

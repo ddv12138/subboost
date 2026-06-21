@@ -1,7 +1,7 @@
 import { getBuiltinTemplateId } from "@subboost/core/templates/builtin";
 import { TEMPLATES } from "@subboost/core/templates";
 import { ensureCustomRulesHaveIds } from "@subboost/core/rules/custom-rule-utils";
-import { normalizePersistedRuleOrder } from "@subboost/core/generator/rules";
+import { hasFullRuleOrderKeys, normalizePersistedRuleOrder } from "@subboost/core/generator/rules";
 import { PROXY_GROUP_MODULES } from "@subboost/core/generator/proxy-groups";
 import { normalizeRuleModelFromConfig } from "@subboost/core/rules/rule-model";
 import type { ConfigActions, SubBoostTemplateConfig } from "../definitions";
@@ -52,6 +52,7 @@ export function createTemplateActions(
         customRuleSets: [],
         builtinRuleEdits: {},
         ruleOrder: [],
+        allRulesOrderEditingEnabled: false,
         moduleRuleEditWarningAccepted: false,
       }));
     },
@@ -144,6 +145,7 @@ export function createTemplateActions(
               ruleOrder: config.ruleOrder,
             })
           : state.ruleOrder;
+        const legacyAllRulesOrderEditingEnabled = (config as Record<string, unknown>).allRulesOrderEditingEnabled;
 
         return {
           // 不触碰 nodes/sources：模板只描述“生成策略”，节点仍由用户导入
@@ -159,6 +161,12 @@ export function createTemplateActions(
           moduleRuleEditWarningAccepted: false,
           customRules: nextCustomRules,
           ruleOrder: nextRuleOrder,
+          allRulesOrderEditingEnabled:
+            typeof legacyAllRulesOrderEditingEnabled === "boolean"
+              ? legacyAllRulesOrderEditingEnabled
+              : shouldRefreshRuleOrder
+                ? hasFullRuleOrderKeys(nextRuleOrder)
+                : state.allRulesOrderEditingEnabled,
           cnIpNoResolve:
             typeof config.cnIpNoResolve === "boolean" ? config.cnIpNoResolve : state.cnIpNoResolve,
           experimentalCnUseCnRuleSet:

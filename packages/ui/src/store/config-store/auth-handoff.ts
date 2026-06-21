@@ -119,6 +119,7 @@ function hasMeaningfulConfig(state: ConfigState): boolean {
     hasRecordEntries(state.proxyGroupNameOverrides) ||
     state.proxyGroupOrder.length > 0 ||
     state.ruleOrder.length > 0 ||
+    state.allRulesOrderEditingEnabled !== initialState.allRulesOrderEditingEnabled ||
     state.moduleRuleEditWarningAccepted !== initialState.moduleRuleEditWarningAccepted ||
     state.appliedTemplateId !== initialState.appliedTemplateId ||
     state.template !== initialState.template ||
@@ -154,6 +155,7 @@ function buildHandoffState(state: ConfigState): Partial<ConfigState> {
     proxyGroupNameOverrides: state.proxyGroupNameOverrides,
     proxyGroupOrder: state.proxyGroupOrder,
     ruleOrder: state.ruleOrder,
+    allRulesOrderEditingEnabled: state.allRulesOrderEditingEnabled,
     moduleRuleEditWarningAccepted: state.moduleRuleEditWarningAccepted,
     appliedTemplateId: state.appliedTemplateId,
     dnsYaml: state.dnsYaml,
@@ -209,6 +211,7 @@ function normalizeHandoffState(raw: unknown): Partial<ConfigState> | null {
   if (proxyGroupOrder) out.proxyGroupOrder = proxyGroupOrder;
   const ruleOrder = stringArray(raw.ruleOrder);
   if (ruleOrder) out.ruleOrder = ruleOrder;
+  if (typeof raw.allRulesOrderEditingEnabled === "boolean") out.allRulesOrderEditingEnabled = raw.allRulesOrderEditingEnabled;
   if (typeof raw.moduleRuleEditWarningAccepted === "boolean") out.moduleRuleEditWarningAccepted = raw.moduleRuleEditWarningAccepted;
   if (typeof raw.appliedTemplateId === "string" || raw.appliedTemplateId === null) {
     out.appliedTemplateId = raw.appliedTemplateId;

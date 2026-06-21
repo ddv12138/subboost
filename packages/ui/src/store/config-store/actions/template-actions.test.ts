@@ -37,6 +37,7 @@ describe("createTemplateActions", () => {
       customRuleSets: [{ id: "custom-ai", name: "Custom AI", behavior: "domain", path: "geosite/custom-ai.mrs", target: "🤖 AI 服务" }],
       builtinRuleEdits: { "module:ai:anthropic": { enabled: false } },
       ruleOrder: ["module:ai:openai"],
+      allRulesOrderEditingEnabled: true,
       moduleRuleEditWarningAccepted: true,
     });
 
@@ -51,6 +52,7 @@ describe("createTemplateActions", () => {
       customRuleSets: [],
       builtinRuleEdits: {},
       ruleOrder: [],
+      allRulesOrderEditingEnabled: false,
       moduleRuleEditWarningAccepted: false,
     });
 
@@ -161,6 +163,7 @@ describe("createTemplateActions", () => {
         },
       ],
       builtinRuleEdits: { "module:ai:openai": { target: "🔍 Google" } },
+      allRulesOrderEditingEnabled: true,
       moduleRuleEditWarningAccepted: false,
       cnIpNoResolve: false,
       experimentalCnUseCnRuleSet: true,

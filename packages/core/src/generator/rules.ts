@@ -132,7 +132,7 @@ function buildModuleRuleEntry(
     summary: rule.name,
     target,
     noResolve,
-    editable: true,
+    editable: false,
     enabled: edit?.enabled !== false,
   };
 }
