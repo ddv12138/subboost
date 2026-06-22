@@ -71,10 +71,11 @@ export function ProxyGroupsCategories() {
     clearProxyGroupNameOverride,
     customProxyGroups = [],
     proxyGroupAdvanced = {},
+    proxyGroupAdvancedModeEnabled,
+    setProxyGroupAdvancedModeEnabled,
     updateProxyGroupAdvanced,
     dialerProxyGroups = [],
   } = useConfigStore();
-  const [advancedProxyGroupMode, setAdvancedProxyGroupMode] = React.useState(false);
 
   const [expandedCategories, setExpandedCategories] = React.useState<
     Set<string>
@@ -307,9 +308,9 @@ export function ProxyGroupsCategories() {
           </div>
           <div className="flex h-9 items-center justify-center gap-1 rounded-md border border-white/10 bg-white/5 px-2">
             <span className="text-[10px] text-white/65">
-              {advancedProxyGroupMode ? "已开启" : "未开启"}
+              {proxyGroupAdvancedModeEnabled ? "已开启" : "未开启"}
             </span>
-            <Switch checked={advancedProxyGroupMode} onCheckedChange={setAdvancedProxyGroupMode} />
+            <Switch checked={proxyGroupAdvancedModeEnabled} onCheckedChange={setProxyGroupAdvancedModeEnabled} />
           </div>
         </div>
       </div>
@@ -601,7 +602,7 @@ export function ProxyGroupsCategories() {
                                     : { strategy: undefined }),
                                 })
                               }
-                              advancedMode={advancedProxyGroupMode}
+                              advancedMode={proxyGroupAdvancedModeEnabled}
                               nodeCount={generatedProxyGroupNodeCounts.get(display.full) ?? 0}
                               renderAdvancedContent={(rulesContent, rulesCount) => (
                                 <ProxyGroupAdvancedPanel
@@ -617,7 +618,7 @@ export function ProxyGroupsCategories() {
                         })
                       ) : (
                         <ProxyGroupsCustomGroupsPanel
-                          advancedMode={advancedProxyGroupMode}
+                          advancedMode={proxyGroupAdvancedModeEnabled}
                           nodeCounts={generatedProxyGroupNodeCounts}
                         />
                       )}

@@ -189,6 +189,10 @@ describe("validateSubBoostTemplateConfig field validation", () => {
       { experimentalCnUseCnRuleSet: "yes" as never },
       "experimentalCnUseCnRuleSet 必须是布尔值"
     );
+    expectInvalid(
+      { proxyGroupAdvancedModeEnabled: "yes" as never },
+      "proxyGroupAdvancedModeEnabled 必须是布尔值"
+    );
     expect(validateSubBoostTemplateConfig(validConfig({ dnsYaml: 1 as never }))).toEqual({
       ok: false,
       error: "dnsYaml 必须是字符串",

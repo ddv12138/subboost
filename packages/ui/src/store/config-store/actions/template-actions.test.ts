@@ -104,17 +104,6 @@ describe("createTemplateActions", () => {
           target: "Custom Group",
         },
       ],
-      filteredProxyGroups: [
-        {
-          id: "filtered-1",
-          name: "Filtered",
-          enabled: true,
-          groupType: "select",
-          sourceIds: [],
-          regions: [],
-          excludedNodeNames: [],
-        },
-      ],
       builtinRuleEdits: { "module:ai:openai": { target: "🔍 Google" } },
       customRules: [{ id: "", type: "DOMAIN-SUFFIX", value: "example.com", target: "Proxy" }],
       ruleOrder: ["custom-rule:custom-rule-domain-suffix-example-com-proxy-1"],
@@ -146,15 +135,8 @@ describe("createTemplateActions", () => {
           advanced: {},
           groupType: "select",
         },
-        {
-          id: "migrated-filtered-filtered-1",
-          name: "Filtered",
-          emoji: "",
-          description: "自定义代理组",
-          groupType: "select",
-          advanced: {},
-        },
       ],
+      proxyGroupAdvancedModeEnabled: true,
       customRuleSets: [
         {
           id: "custom-provider",
@@ -224,7 +206,6 @@ describe("createTemplateActions", () => {
       enabledProxyGroups: "bad",
       hiddenProxyGroups: [" ai ", "adult", "adult", 123],
       customProxyGroups: "bad",
-      filteredProxyGroups: "bad",
       customRules: "bad",
       cnIpNoResolve: "bad",
       experimentalCnUseCnRuleSet: "bad",

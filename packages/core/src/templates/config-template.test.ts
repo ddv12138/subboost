@@ -80,20 +80,6 @@ describe("validateSubBoostTemplateConfig", () => {
             noResolve: true,
           },
         ],
-        filteredProxyGroups: [
-          {
-            id: "filtered",
-            name: "Filtered",
-            enabled: true,
-            groupType: "load-balance",
-            sourceIds: ["source-a", "source-a", ""],
-            regions: ["us", "hk"],
-            excludedNodeNames: ["Node A", "Node A"],
-            includeRegex: " US ",
-            excludeRegex: "IPv6",
-            emoji: "F",
-          },
-        ],
         customRules: [
           {
             id: "custom-rule-a",
@@ -150,20 +136,7 @@ describe("validateSubBoostTemplateConfig", () => {
         }),
       ])
     );
-    expect(result.config.customProxyGroups[1]).toMatchObject({
-      id: "migrated-filtered-filtered",
-      name: "Filtered",
-      groupType: "load-balance",
-      strategy: DEFAULT_LOAD_BALANCE_STRATEGY,
-      emoji: "F",
-      advanced: {
-        sourceIds: ["source-a"],
-        regions: ["us", "hk"],
-        excludedMembers: [{ kind: "node", name: "Node A" }],
-        includeRegex: "US",
-        excludeRegex: "IPv6",
-      },
-    });
+    expect(result.config.proxyGroupAdvancedModeEnabled).toBe(true);
     expect(result.config.customRules[0]).toMatchObject({
       id: "custom-rule-a",
       value: "example.com",
@@ -187,6 +160,11 @@ describe("validateSubBoostTemplateConfig", () => {
     expectInvalid({ moduleRuleOverrides: {} } as never, "模板配置包含已移除字段: moduleRuleOverrides");
     expectInvalid({ moduleRuleExclusions: {} } as never, "模板配置包含已移除字段: moduleRuleExclusions");
     expectInvalid({ allRulesOrderEditingEnabled: true } as never, "模板配置包含已移除字段: allRulesOrderEditingEnabled");
+    const removedFilteredGroupsField = `filtered${"ProxyGroups"}`;
+    expectInvalid(
+      { [removedFilteredGroupsField]: [] } as never,
+      `模板配置包含已移除字段: ${removedFilteredGroupsField}`
+    );
     expectInvalid(
       { customProxyGroups: [{ id: "custom", name: "Custom", emoji: "", groupType: "select", rules: [] }] } as never,
       "模板配置包含已移除字段: customProxyGroups[0].rules"

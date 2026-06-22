@@ -104,6 +104,7 @@ describe("useSubscriptionLink", () => {
     resetHookState();
     mocks.bag.storeState = {
       proxyGroupAdvanced: { auto: { includeRegex: "Fast" } },
+      proxyGroupAdvancedModeEnabled: true,
       proxyGroupOrder: ["select", "auto"],
     };
     originalWindow = globalThis.window;
@@ -256,6 +257,7 @@ describe("useSubscriptionLink", () => {
               }),
             ],
             proxyGroupAdvanced: { auto: { includeRegex: "Fast" } },
+            proxyGroupAdvancedModeEnabled: true,
             listenerPorts: { "Node A": 41000 },
             proxyGroupOrder: ["select", "auto"],
           }),

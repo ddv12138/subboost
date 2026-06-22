@@ -68,6 +68,7 @@ describe("default config builders", () => {
       hiddenProxyGroups: [],
       customProxyGroups: [],
       proxyGroupAdvanced: {},
+      proxyGroupAdvancedModeEnabled: false,
       customRuleSets: [],
       builtinRuleEdits: {},
       customRules: [],

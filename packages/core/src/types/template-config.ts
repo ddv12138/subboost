@@ -27,6 +27,7 @@ export type SubBoostTemplateConfig = {
   hiddenProxyGroups?: string[];
   customProxyGroups: CustomProxyGroup[];
   proxyGroupAdvanced?: Record<string, ProxyGroupAdvancedConfig>;
+  proxyGroupAdvancedModeEnabled?: boolean;
   customRuleSets: CustomRuleSet[];
   builtinRuleEdits?: BuiltinRuleEdits;
   customRules: CustomRule[];

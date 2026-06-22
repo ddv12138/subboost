@@ -4,7 +4,7 @@ import { ensureCustomRulesHaveIds } from "@subboost/core/rules/custom-rule-utils
 import { normalizePersistedRuleOrder } from "@subboost/core/generator/rules";
 import { PROXY_GROUP_MODULES } from "@subboost/core/generator/proxy-groups";
 import { normalizeRuleModelFromConfig } from "@subboost/core/rules/rule-model";
-import { migrateFilteredProxyGroupsConfig } from "@subboost/core/migrations/filtered-proxy-groups";
+import { resolveProxyGroupAdvancedModeEnabled } from "@subboost/core/proxy-group-advanced-mode";
 import type { ConfigActions, SubBoostTemplateConfig } from "../definitions";
 import type { GetState, SetAndGenerateConfig, SetState } from "../store-types";
 
@@ -79,13 +79,12 @@ export function createTemplateActions(
     // 应用模板配置（从模板库应用）
     applyTemplateConfig: (config: SubBoostTemplateConfig) => {
       if (!config || typeof config !== "object") return;
-      const migratedConfig = migrateFilteredProxyGroupsConfig(config);
 
       setAndGenerateConfig((state) => {
-        const ruleModel = normalizeRuleModelFromConfig(migratedConfig);
-        const hasCustomProxyGroups = Array.isArray(migratedConfig.customProxyGroups);
-        const hasCustomRuleSets = Array.isArray(migratedConfig.customRuleSets);
-        const hasBuiltinRuleEdits = Boolean(migratedConfig.builtinRuleEdits && typeof migratedConfig.builtinRuleEdits === "object");
+        const ruleModel = normalizeRuleModelFromConfig(config);
+        const hasCustomProxyGroups = Array.isArray(config.customProxyGroups);
+        const hasCustomRuleSets = Array.isArray(config.customRuleSets);
+        const hasBuiltinRuleEdits = Boolean(config.builtinRuleEdits && typeof config.builtinRuleEdits === "object");
         const nextCustomProxyGroups =
           hasCustomProxyGroups || ruleModel.customProxyGroups.length > 0
             ? ruleModel.customProxyGroups
@@ -96,19 +95,23 @@ export function createTemplateActions(
             : state.customRuleSets;
         const nextBuiltinRuleEdits =
           hasBuiltinRuleEdits ? ruleModel.builtinRuleEdits : state.builtinRuleEdits;
-        const nextCustomRules = Array.isArray(migratedConfig.customRules)
-          ? ensureCustomRulesHaveIds(migratedConfig.customRules)
+        const nextCustomRules = Array.isArray(config.customRules)
+          ? ensureCustomRulesHaveIds(config.customRules)
           : state.customRules;
-        const nextHiddenProxyGroups = normalizeHiddenProxyGroups(migratedConfig.hiddenProxyGroups);
+        const nextProxyGroupAdvanced =
+          config.proxyGroupAdvanced && typeof config.proxyGroupAdvanced === "object"
+            ? config.proxyGroupAdvanced
+            : state.proxyGroupAdvanced;
+        const nextHiddenProxyGroups = normalizeHiddenProxyGroups(config.hiddenProxyGroups);
         const nextHiddenProxyGroupSet = new Set(nextHiddenProxyGroups);
         const shouldRefreshRuleOrder =
-          Array.isArray(migratedConfig.ruleOrder) ||
-          Array.isArray(migratedConfig.customRules) ||
+          Array.isArray(config.ruleOrder) ||
+          Array.isArray(config.customRules) ||
           hasCustomProxyGroups ||
           hasCustomRuleSets ||
           hasBuiltinRuleEdits;
-        const nextEnabledModulesRaw = Array.isArray(migratedConfig.enabledProxyGroups)
-          ? migratedConfig.enabledProxyGroups
+        const nextEnabledModulesRaw = Array.isArray(config.enabledProxyGroups)
+          ? config.enabledProxyGroups
           : state.enabledProxyGroups;
         const nextEnabledModules = nextEnabledModulesRaw.filter(
           (moduleId) => !nextHiddenProxyGroupSet.has(moduleId)
@@ -121,55 +124,57 @@ export function createTemplateActions(
               customProxyGroups: nextCustomProxyGroups,
               builtinRuleEdits: nextBuiltinRuleEdits,
               proxyGroupNameOverrides:
-                migratedConfig.proxyGroupNameOverrides && typeof migratedConfig.proxyGroupNameOverrides === "object"
-                  ? (migratedConfig.proxyGroupNameOverrides as Record<string, string>)
+                config.proxyGroupNameOverrides && typeof config.proxyGroupNameOverrides === "object"
+                  ? (config.proxyGroupNameOverrides as Record<string, string>)
                   : state.proxyGroupNameOverrides,
               experimentalCnUseCnRuleSet:
-                typeof migratedConfig.experimentalCnUseCnRuleSet === "boolean"
-                  ? migratedConfig.experimentalCnUseCnRuleSet
+                typeof config.experimentalCnUseCnRuleSet === "boolean"
+                  ? config.experimentalCnUseCnRuleSet
                   : state.experimentalCnUseCnRuleSet,
               cnIpNoResolve:
-                typeof migratedConfig.cnIpNoResolve === "boolean" ? migratedConfig.cnIpNoResolve : state.cnIpNoResolve,
-              ruleOrder: migratedConfig.ruleOrder,
+                typeof config.cnIpNoResolve === "boolean" ? config.cnIpNoResolve : state.cnIpNoResolve,
+              ruleOrder: config.ruleOrder,
             })
           : state.ruleOrder;
         return {
           // 不触碰 nodes/sources：模板只描述“生成策略”，节点仍由用户导入
-          template: migratedConfig.template ?? state.template,
+          template: config.template ?? state.template,
           enabledProxyGroups: nextEnabledModules,
           hiddenProxyGroups: nextHiddenProxyGroups,
           customProxyGroups: nextCustomProxyGroups,
-          proxyGroupAdvanced:
-            migratedConfig.proxyGroupAdvanced && typeof migratedConfig.proxyGroupAdvanced === "object"
-              ? migratedConfig.proxyGroupAdvanced
-              : state.proxyGroupAdvanced,
+          proxyGroupAdvanced: nextProxyGroupAdvanced,
+          proxyGroupAdvancedModeEnabled: resolveProxyGroupAdvancedModeEnabled({
+            proxyGroupAdvancedModeEnabled: config.proxyGroupAdvancedModeEnabled,
+            customProxyGroups: nextCustomProxyGroups,
+            proxyGroupAdvanced: nextProxyGroupAdvanced,
+          }),
           customRuleSets: nextCustomRuleSets,
           builtinRuleEdits: nextBuiltinRuleEdits,
           moduleRuleEditWarningAccepted: false,
           customRules: nextCustomRules,
           ruleOrder: nextRuleOrder,
           cnIpNoResolve:
-            typeof migratedConfig.cnIpNoResolve === "boolean" ? migratedConfig.cnIpNoResolve : state.cnIpNoResolve,
+            typeof config.cnIpNoResolve === "boolean" ? config.cnIpNoResolve : state.cnIpNoResolve,
           experimentalCnUseCnRuleSet:
-            typeof migratedConfig.experimentalCnUseCnRuleSet === "boolean"
-              ? migratedConfig.experimentalCnUseCnRuleSet
+            typeof config.experimentalCnUseCnRuleSet === "boolean"
+              ? config.experimentalCnUseCnRuleSet
               : state.experimentalCnUseCnRuleSet,
-          dialerProxyGroups: Array.isArray(migratedConfig.dialerProxyGroups)
-            ? migratedConfig.dialerProxyGroups
+          dialerProxyGroups: Array.isArray(config.dialerProxyGroups)
+            ? config.dialerProxyGroups
             : state.dialerProxyGroups,
           proxyGroupNameOverrides:
-            migratedConfig.proxyGroupNameOverrides && typeof migratedConfig.proxyGroupNameOverrides === "object"
-              ? (migratedConfig.proxyGroupNameOverrides as Record<string, string>)
+            config.proxyGroupNameOverrides && typeof config.proxyGroupNameOverrides === "object"
+              ? (config.proxyGroupNameOverrides as Record<string, string>)
               : state.proxyGroupNameOverrides,
-          dnsYaml: typeof migratedConfig.dnsYaml === "string" ? migratedConfig.dnsYaml : state.dnsYaml,
-          mixedPort: typeof migratedConfig.mixedPort === "number" ? migratedConfig.mixedPort : state.mixedPort,
-          allowLan: typeof migratedConfig.allowLan === "boolean" ? migratedConfig.allowLan : state.allowLan,
-          testUrl: typeof migratedConfig.testUrl === "string" ? migratedConfig.testUrl : state.testUrl,
+          dnsYaml: typeof config.dnsYaml === "string" ? config.dnsYaml : state.dnsYaml,
+          mixedPort: typeof config.mixedPort === "number" ? config.mixedPort : state.mixedPort,
+          allowLan: typeof config.allowLan === "boolean" ? config.allowLan : state.allowLan,
+          testUrl: typeof config.testUrl === "string" ? config.testUrl : state.testUrl,
           testInterval:
-            typeof migratedConfig.testInterval === "number" ? migratedConfig.testInterval : state.testInterval,
+            typeof config.testInterval === "number" ? config.testInterval : state.testInterval,
           ruleProviderBaseUrl:
-            typeof migratedConfig.ruleProviderBaseUrl === "string"
-              ? migratedConfig.ruleProviderBaseUrl
+            typeof config.ruleProviderBaseUrl === "string"
+              ? config.ruleProviderBaseUrl
               : state.ruleProviderBaseUrl,
         };
       });

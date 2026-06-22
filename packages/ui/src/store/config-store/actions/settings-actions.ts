@@ -9,6 +9,7 @@ type SettingsActions = Pick<
   | "setTestUrl"
   | "setTestInterval"
   | "setRuleProviderBaseUrl"
+  | "setProxyGroupAdvancedModeEnabled"
   | "setCnIpNoResolve"
   | "setExperimentalCnUseCnRuleSet"
 >;
@@ -41,6 +42,10 @@ export function createSettingsActions(
 
     setRuleProviderBaseUrl: (url: string) => {
       setAndGenerateConfig(() => ({ ruleProviderBaseUrl: url }));
+    },
+
+    setProxyGroupAdvancedModeEnabled: (value: boolean) => {
+      setAndGenerateConfig(() => ({ proxyGroupAdvancedModeEnabled: Boolean(value) }));
     },
 
     setCnIpNoResolve: (value: boolean) => {

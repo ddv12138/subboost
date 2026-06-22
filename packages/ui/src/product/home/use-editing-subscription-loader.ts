@@ -7,7 +7,7 @@ import type { EditingSubscriptionLoaderOptions } from "./editing-subscription-ty
 import { normalizePersistedRuleOrder } from "@subboost/core/generator/rules";
 import { ensureCustomRulesHaveIds } from "@subboost/core/rules/custom-rule-utils";
 import { normalizeRuleModelFromConfig } from "@subboost/core/rules/rule-model";
-import { migrateFilteredProxyGroupsConfig } from "@subboost/core/migrations/filtered-proxy-groups";
+import { resolveProxyGroupAdvancedModeEnabled } from "@subboost/core/proxy-group-advanced-mode";
 import { normalizeProxyGroupAdvancedConfig } from "@subboost/core/proxy-group-advanced";
 import { tryNormalizeSubscriptionUrlInput } from "@subboost/core/subscription/url-input";
 import {
@@ -76,9 +76,7 @@ export function useEditingSubscriptionLoader({
           }
           return out;
         })();
-        const cfg = migrateFilteredProxyGroupsConfig(
-          sub.config && typeof sub.config === "object" ? (sub.config as Record<string, unknown>) : {},
-        );
+        const cfg = sub.config && typeof sub.config === "object" ? (sub.config as Record<string, unknown>) : {};
         const subscriptionInfoFromRecord = normalizeSubscriptionUserInfo((sub as any).subscriptionInfo);
         const hasSubscriptionInfoFromRecord = hasSubscriptionUserInfo(subscriptionInfoFromRecord);
         const deletedNodesFromCfg = Array.isArray((cfg as any).deletedNodes)
@@ -488,6 +486,11 @@ export function useEditingSubscriptionLoader({
           typeof cfg.appliedTemplateId === "string" && cfg.appliedTemplateId.trim()
             ? (cfg.appliedTemplateId as string)
             : null;
+        const proxyGroupAdvancedModeEnabledFromCfg = resolveProxyGroupAdvancedModeEnabled({
+          proxyGroupAdvancedModeEnabled: (cfg as any).proxyGroupAdvancedModeEnabled,
+          customProxyGroups: customProxyGroupsFromCfg,
+          proxyGroupAdvanced: proxyGroupAdvancedFromCfg,
+        });
 
         // 重置后批量写入，避免中间状态触发重复生成
         useConfigStore.getState().reset();
@@ -515,6 +518,7 @@ export function useEditingSubscriptionLoader({
           customRuleSets: customRuleSetsFromCfg,
           builtinRuleEdits: builtinRuleEditsFromCfg,
           proxyGroupAdvanced: proxyGroupAdvancedFromCfg,
+          proxyGroupAdvancedModeEnabled: proxyGroupAdvancedModeEnabledFromCfg,
           moduleRuleEditWarningAccepted:
             typeof (cfg as any).moduleRuleEditWarningAccepted === "boolean"
               ? Boolean((cfg as any).moduleRuleEditWarningAccepted)

@@ -212,7 +212,6 @@ describe("useEditingSubscriptionLoader", () => {
               hiddenProxyGroups: ["youtube"],
               customRules: [{ type: "DOMAIN", value: "example.com", target: "🤖 AI 服务" }],
               customProxyGroups: [{ id: "custom-1", name: "Custom", emoji: "", groupType: "select" }],
-              filteredProxyGroups: [{ id: "fg-1", name: "Fast", enabled: true, groupType: "select" }],
               customRuleSets: [
                 {
                   id: "custom-ai",
@@ -269,15 +268,8 @@ describe("useEditingSubscriptionLoader", () => {
       hiddenProxyGroups: ["youtube"],
       customProxyGroups: [
         { id: "custom-1", name: "Custom", emoji: "", groupType: "select", advanced: {} },
-        {
-          id: "migrated-filtered-fg-1",
-          name: "Fast",
-          emoji: "",
-          description: "自定义代理组",
-          groupType: "select",
-          advanced: {},
-        },
       ],
+      proxyGroupAdvancedModeEnabled: true,
       customRuleSets: [
         {
           id: "custom-ai",

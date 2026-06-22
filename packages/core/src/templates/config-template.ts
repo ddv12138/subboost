@@ -1,7 +1,7 @@
 import { PROXY_GROUP_MODULES } from "@subboost/core/generator/proxy-groups";
 import { normalizePersistedRuleOrder } from "@subboost/core/generator/rules";
 import { ensureCustomRuleId, isCustomRuleType } from "@subboost/core/rules/custom-rule-utils";
-import { migrateFilteredProxyGroupsConfig } from "@subboost/core/migrations/filtered-proxy-groups";
+import { resolveProxyGroupAdvancedModeEnabled } from "@subboost/core/proxy-group-advanced-mode";
 import { normalizeProxyGroupAdvancedConfig } from "@subboost/core/proxy-group-advanced";
 import {
   isValidRuleSetPathOrUrl,
@@ -34,65 +34,70 @@ const REMOVED_TEMPLATE_FIELDS = new Set([
   "moduleRuleOverrides",
   "moduleRuleExclusions",
   "allRulesOrderEditingEnabled",
+  "filteredProxyGroups",
 ]);
 
 export function validateSubBoostTemplateConfig(value: unknown): ValidationResult {
-  const migratedValue = migrateFilteredProxyGroupsConfig(value);
-  if (!isRecord(migratedValue)) return invalid("模板配置必须是对象");
-  if (migratedValue.schema !== SUBBOOST_TEMPLATE_CONFIG_SCHEMA) {
+  if (!isRecord(value)) return invalid("模板配置必须是对象");
+  if (value.schema !== SUBBOOST_TEMPLATE_CONFIG_SCHEMA) {
     return invalid("模板配置 schema 无效");
   }
-  const removedField = findRemovedTemplateField(migratedValue);
+  const removedField = findRemovedTemplateField(value);
   if (removedField) return invalid(`模板配置包含已移除字段: ${removedField}`);
 
-  const template = parseTemplateType(migratedValue.template);
+  const template = parseTemplateType(value.template);
   if (!template) return invalid("模板类型无效");
 
-  const enabledProxyGroups = parseModuleIdArray(migratedValue.enabledProxyGroups, "enabledProxyGroups", { required: true });
+  const enabledProxyGroups = parseModuleIdArray(value.enabledProxyGroups, "enabledProxyGroups", { required: true });
   if (!enabledProxyGroups.ok) return enabledProxyGroups;
   if (enabledProxyGroups.value.length === 0) return invalid("至少需要一个代理组");
 
-  const hiddenProxyGroups = parseModuleIdArray(migratedValue.hiddenProxyGroups, "hiddenProxyGroups", { required: false });
+  const hiddenProxyGroups = parseModuleIdArray(value.hiddenProxyGroups, "hiddenProxyGroups", { required: false });
   if (!hiddenProxyGroups.ok) return hiddenProxyGroups;
   const hiddenSet = new Set(hiddenProxyGroups.value);
   if (enabledProxyGroups.value.every((id) => hiddenSet.has(id))) {
     return invalid("至少需要一个可见代理组");
   }
 
-  const customProxyGroups = parseCustomProxyGroups(migratedValue.customProxyGroups);
+  const customProxyGroups = parseCustomProxyGroups(value.customProxyGroups);
   if (!customProxyGroups.ok) return customProxyGroups;
-  const proxyGroupAdvanced = parseProxyGroupAdvanced(migratedValue.proxyGroupAdvanced);
+  const proxyGroupAdvanced = parseProxyGroupAdvanced(value.proxyGroupAdvanced);
   if (!proxyGroupAdvanced.ok) return proxyGroupAdvanced;
-  const customRuleSets = parseCustomRuleSets(migratedValue.customRuleSets);
+  const proxyGroupAdvancedModeEnabled = parseOptionalBoolean(
+    value.proxyGroupAdvancedModeEnabled,
+    "proxyGroupAdvancedModeEnabled"
+  );
+  if (!proxyGroupAdvancedModeEnabled.ok) return proxyGroupAdvancedModeEnabled;
+  const customRuleSets = parseCustomRuleSets(value.customRuleSets);
   if (!customRuleSets.ok) return customRuleSets;
-  const builtinRuleEdits = parseBuiltinRuleEdits(migratedValue.builtinRuleEdits);
+  const builtinRuleEdits = parseBuiltinRuleEdits(value.builtinRuleEdits);
   if (!builtinRuleEdits.ok) return builtinRuleEdits;
-  const ruleModel = normalizeRuleModelFromConfig(migratedValue);
-  const customRules = parseCustomRules(migratedValue.customRules);
+  const ruleModel = normalizeRuleModelFromConfig(value);
+  const customRules = parseCustomRules(value.customRules);
   if (!customRules.ok) return customRules;
-  const dialerProxyGroups = parseDialerProxyGroups(migratedValue.dialerProxyGroups);
+  const dialerProxyGroups = parseDialerProxyGroups(value.dialerProxyGroups);
   if (!dialerProxyGroups.ok) return dialerProxyGroups;
-  const proxyGroupNameOverrides = parseStringRecord(migratedValue.proxyGroupNameOverrides, "proxyGroupNameOverrides");
+  const proxyGroupNameOverrides = parseStringRecord(value.proxyGroupNameOverrides, "proxyGroupNameOverrides");
   if (!proxyGroupNameOverrides.ok) return proxyGroupNameOverrides;
-  const ruleOrder = parseOptionalStringArray(migratedValue.ruleOrder, "ruleOrder");
+  const ruleOrder = parseOptionalStringArray(value.ruleOrder, "ruleOrder");
   if (!ruleOrder.ok) return ruleOrder;
 
-  const dnsYaml = parseRequiredString(migratedValue.dnsYaml, "dnsYaml", { allowEmpty: true });
+  const dnsYaml = parseRequiredString(value.dnsYaml, "dnsYaml", { allowEmpty: true });
   if (!dnsYaml.ok) return dnsYaml;
-  const mixedPort = parsePort(migratedValue.mixedPort, "mixedPort");
+  const mixedPort = parsePort(value.mixedPort, "mixedPort");
   if (!mixedPort.ok) return mixedPort;
-  const allowLan = parseBoolean(migratedValue.allowLan, "allowLan");
+  const allowLan = parseBoolean(value.allowLan, "allowLan");
   if (!allowLan.ok) return allowLan;
-  const testUrl = parseHttpUrlString(migratedValue.testUrl, "testUrl");
+  const testUrl = parseHttpUrlString(value.testUrl, "testUrl");
   if (!testUrl.ok) return testUrl;
-  const testInterval = parsePositiveInteger(migratedValue.testInterval, "testInterval");
+  const testInterval = parsePositiveInteger(value.testInterval, "testInterval");
   if (!testInterval.ok) return testInterval;
-  const ruleProviderBaseUrl = parseHttpUrlString(migratedValue.ruleProviderBaseUrl, "ruleProviderBaseUrl");
+  const ruleProviderBaseUrl = parseHttpUrlString(value.ruleProviderBaseUrl, "ruleProviderBaseUrl");
   if (!ruleProviderBaseUrl.ok) return ruleProviderBaseUrl;
-  const cnIpNoResolve = parseOptionalBoolean(migratedValue.cnIpNoResolve, "cnIpNoResolve");
+  const cnIpNoResolve = parseOptionalBoolean(value.cnIpNoResolve, "cnIpNoResolve");
   if (!cnIpNoResolve.ok) return cnIpNoResolve;
   const experimentalCnUseCnRuleSet = parseOptionalBoolean(
-    migratedValue.experimentalCnUseCnRuleSet,
+    value.experimentalCnUseCnRuleSet,
     "experimentalCnUseCnRuleSet"
   );
   if (!experimentalCnUseCnRuleSet.ok) return experimentalCnUseCnRuleSet;
@@ -117,6 +122,11 @@ export function validateSubBoostTemplateConfig(value: unknown): ValidationResult
       hiddenProxyGroups: hiddenProxyGroups.value,
       customProxyGroups: customProxyGroups.value,
       proxyGroupAdvanced: proxyGroupAdvanced.value,
+      proxyGroupAdvancedModeEnabled: resolveProxyGroupAdvancedModeEnabled({
+        proxyGroupAdvancedModeEnabled: proxyGroupAdvancedModeEnabled.value,
+        customProxyGroups: customProxyGroups.value,
+        proxyGroupAdvanced: proxyGroupAdvanced.value,
+      }),
       customRuleSets: ruleModel.customRuleSets,
       builtinRuleEdits: ruleModel.builtinRuleEdits,
       customRules: customRules.value,

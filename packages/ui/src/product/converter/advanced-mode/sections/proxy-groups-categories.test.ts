@@ -213,6 +213,8 @@ describe("ProxyGroupsCategories", () => {
       customProxyGroups: [{ id: "custom-1", name: "Custom" }],
       dialerProxyGroups: [{ name: "Dialer" }],
       proxyGroupAdvanced: {},
+      proxyGroupAdvancedModeEnabled: false,
+      setProxyGroupAdvancedModeEnabled: vi.fn(),
       updateProxyGroupAdvanced: vi.fn(),
     };
   });
@@ -230,10 +232,10 @@ describe("ProxyGroupsCategories", () => {
   });
 
   it("renders visible and hidden modules and forwards basic config changes", () => {
-    renderCategories({ 1: new Set(["core"]) });
+    renderCategories({ 0: new Set(["core"]) });
 
     expect(mocks.captures.inputs).toHaveLength(0);
-    expect(renderCategories({ 1: new Set(["core"]) }).html).toContain("https://rules.example/base/");
+    expect(renderCategories({ 0: new Set(["core"]) }).html).toContain("https://rules.example/base/");
     expect(mocks.store.setRuleProviderBaseUrl).not.toHaveBeenCalled();
 
     expect(mocks.captures.moduleCards).toHaveLength(1);
@@ -249,12 +251,12 @@ describe("ProxyGroupsCategories", () => {
 
     mocks.captures.dropdownItems[0].onClick();
     expect(mocks.store.restoreHiddenProxyGroup).toHaveBeenCalledWith("fallback");
-    expect(stateMock.setters[1]).toHaveBeenCalledWith(expect.any(Function));
+    expect(stateMock.setters[0]).toHaveBeenCalledWith(expect.any(Function));
     expect(mocks.captures.customRulesRendered).toBe(true);
   });
 
   it("handles module card actions, confirmations, and rule movement", async () => {
-    const { setters } = renderCategories({ 1: new Set(["core"]) });
+    const { setters } = renderCategories({ 0: new Set(["core"]) });
     const card = mocks.captures.moduleCards[0];
 
     await card.onToggleEnabled();
@@ -264,10 +266,10 @@ describe("ProxyGroupsCategories", () => {
     await card.onHide();
     expect(mocks.confirmDialog).toHaveBeenCalledWith(expect.objectContaining({ confirmText: "删除" }));
     expect(mocks.store.hideProxyGroup).toHaveBeenCalledWith("auto");
-    expect(setters[4]).toHaveBeenCalledWith(expect.any(Function));
+    expect(setters[3]).toHaveBeenCalledWith(expect.any(Function));
 
     card.onToggleRulesExpanded();
-    expect(setters[4]).toHaveBeenCalledWith(expect.any(Function));
+    expect(setters[3]).toHaveBeenCalledWith(expect.any(Function));
     card.onAddRules([{ id: "rule-a" }]);
     expect(mocks.store.addModuleRules).toHaveBeenCalledWith("auto", [{ id: "rule-a" }]);
     card.onAddRulesToModule("fallback", [{ id: "rule-b" }]);
@@ -295,28 +297,28 @@ describe("ProxyGroupsCategories", () => {
   });
 
   it("renames modules and adds rules to custom groups with duplicate guards", () => {
-    const { setters } = renderCategories({ 1: new Set(["core"]), 2: "auto", 3: "Custom" });
+    const { setters } = renderCategories({ 0: new Set(["core"]), 1: "auto", 2: "Custom" });
     const card = mocks.captures.moduleCards[0];
 
     card.onStartEditing();
-    expect(setters[2]).toHaveBeenCalledWith("auto");
-    expect(setters[3]).toHaveBeenCalledWith("Auto Override");
+    expect(setters[1]).toHaveBeenCalledWith("auto");
+    expect(setters[2]).toHaveBeenCalledWith("Auto Override");
 
     card.onCommitEditing();
     expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "代理组名称已存在，请换一个名称。", variant: "warning" }));
 
     card.onCancelEditing();
-    expect(setters[2]).toHaveBeenCalledWith(null);
+    expect(setters[1]).toHaveBeenCalledWith(null);
 
-    renderCategories({ 1: new Set(["core"]), 2: "auto", 3: "" });
+    renderCategories({ 0: new Set(["core"]), 1: "auto", 2: "" });
     mocks.captures.moduleCards[0].onCommitEditing();
     expect(mocks.store.clearProxyGroupNameOverride).toHaveBeenCalledWith("auto");
 
-    renderCategories({ 1: new Set(["core"]), 2: "auto", 3: "Auto" });
+    renderCategories({ 0: new Set(["core"]), 1: "auto", 2: "Auto" });
     mocks.captures.moduleCards[0].onCommitEditing();
     expect(mocks.store.clearProxyGroupNameOverride).toHaveBeenCalledWith("auto");
 
-    renderCategories({ 1: new Set(["core"]), 2: "auto", 3: "Unique" });
+    renderCategories({ 0: new Set(["core"]), 1: "auto", 2: "Unique" });
     mocks.captures.moduleCards[0].onCommitEditing();
     expect(mocks.store.setProxyGroupNameOverride).toHaveBeenCalledWith("auto", "Unique");
 
@@ -326,12 +328,12 @@ describe("ProxyGroupsCategories", () => {
 
     mocks.store.customRuleSets = [{ id: "geo", name: "Geo", behavior: "domain", path: "geo.txt", target: "Custom" }];
     mocks.store.addModuleRules.mockClear();
-    renderCategories({ 1: new Set(["core"]) });
+    renderCategories({ 0: new Set(["core"]) });
     mocks.captures.moduleCards[0].onAddRuleToCustomGroup("custom-1", customRule);
     expect(mocks.store.addModuleRules).toHaveBeenCalledWith("custom-1", [customRule]);
 
     mocks.store.customProxyGroups = [{ id: "custom-1", name: "Custom" }];
-    renderCategories({ 1: new Set(["core"]) });
+    renderCategories({ 0: new Set(["core"]) });
     mocks.captures.moduleCards[0].onAddRuleToCustomGroup("missing", customRule);
     expect(mocks.store.updateCustomProxyGroup).not.toHaveBeenCalled();
 
@@ -357,7 +359,7 @@ describe("ProxyGroupsCategories", () => {
     mocks.store.hiddenProxyGroups = [];
     mocks.store.enabledProxyGroups = [];
     mocks.store.dialerProxyGroups = [null, { name: "  " }];
-    const { setters } = renderCategories({ 1: new Set(["custom", "core"]) });
+    const { setters } = renderCategories({ 0: new Set(["custom", "core"]) });
     expect(mocks.captures.customPanelRendered).toBe(true);
     expect(mocks.captures.moduleCards).toHaveLength(2);
 
@@ -373,17 +375,17 @@ describe("ProxyGroupsCategories", () => {
   });
 
   it("toggles category expansion through the rendered category headers", () => {
-    const { tree, setters } = renderCategoryTree({ 1: new Set(["core"]) });
+    const { tree, setters } = renderCategoryTree({ 0: new Set(["core"]) });
     const categoryButtons = collectElements(
       tree,
       (element) => element.type === "button" && String(element.props.className || "").includes("w-full flex")
     );
 
     categoryButtons[0].props.onClick();
-    expect(setters[1]).toHaveBeenCalledWith(expect.any(Function));
-    expect((setters[1] as any).lastValue.has("core")).toBe(false);
+    expect(setters[0]).toHaveBeenCalledWith(expect.any(Function));
+    expect((setters[0] as any).lastValue.has("core")).toBe(false);
 
     categoryButtons[1].props.onClick();
-    expect((setters[1] as any).lastValue.has("custom")).toBe(true);
+    expect((setters[0] as any).lastValue.has("custom")).toBe(true);
   });
 });

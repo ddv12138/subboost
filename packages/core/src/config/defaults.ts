@@ -86,6 +86,7 @@ export function buildDefaultSubBoostTemplateConfig(type: TemplateType): SubBoost
     hiddenProxyGroups: [],
     customProxyGroups: [],
     proxyGroupAdvanced: {},
+    proxyGroupAdvancedModeEnabled: false,
     customRuleSets: [],
     builtinRuleEdits: {},
     customRules: [],

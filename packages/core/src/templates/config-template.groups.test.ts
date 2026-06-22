@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { validateSubBoostTemplateConfig } from "@subboost/core/templates/config-template";
 import { expectInvalid, validConfig } from "./config-template.test-helpers";
 
-describe("validateSubBoostTemplateConfig custom and filtered groups", () => {
-  it("rejects invalid custom and filtered group fields", () => {
+describe("validateSubBoostTemplateConfig custom groups", () => {
+  it("rejects invalid custom group fields", () => {
     expectInvalid({ customRules: "bad" as never }, "customRules 必须是数组");
     expectInvalid({ customRules: [1 as never] }, "customRules 只能包含对象");
     expectInvalid(
@@ -145,37 +145,7 @@ describe("validateSubBoostTemplateConfig custom and filtered groups", () => {
       )
     ).toEqual({ ok: false, error: "customProxyGroups.strategy 无效" });
 
-    expect(
-      validateSubBoostTemplateConfig(
-        validConfig({
-          filteredProxyGroups: [
-            {
-              id: "legacy",
-              name: "Legacy",
-              enabled: true,
-              groupType: "select",
-              sourceIds: ["source-a"],
-              regions: ["moon" as never, "hk"],
-              excludedNodeNames: ["Node A"],
-            },
-          ],
-        })
-      )
-    ).toMatchObject({
-      ok: true,
-      config: {
-        customProxyGroups: [
-          expect.objectContaining({
-            id: "migrated-filtered-legacy",
-            name: "Legacy",
-            advanced: {
-              sourceIds: ["source-a"],
-              regions: ["hk"],
-              excludedMembers: [{ kind: "node", name: "Node A" }],
-            },
-          }),
-        ],
-      },
-    });
+    const removedField = `filtered${"ProxyGroups"}`;
+    expectInvalid({ [removedField]: [] } as never, `模板配置包含已移除字段: ${removedField}`);
   });
 });

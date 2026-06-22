@@ -174,6 +174,7 @@ export interface ConfigState {
   hiddenProxyGroups: string[]; // 隐藏的内置代理组（仅影响 UI，不参与生成）
   customProxyGroups: CustomProxyGroup[]; // 自定义分流组
   proxyGroupAdvanced: Record<string, ProxyGroupAdvancedConfig>; // 内置分流组高级筛选/排序配置
+  proxyGroupAdvancedModeEnabled: boolean; // 分流组高级模式 UI 开关
   customRuleSets: CustomRuleSet[]; // 用户新增规则集，统一进入自定义规则块
   builtinRuleEdits: BuiltinRuleEdits; // 内置规则的目标覆盖或禁用状态
   customRules: CustomRule[];
@@ -294,6 +295,7 @@ export interface ConfigActions {
   setTestUrl: (url: string) => void;
   setTestInterval: (interval: number) => void;
   setRuleProviderBaseUrl: (url: string) => void;
+  setProxyGroupAdvancedModeEnabled: (value: boolean) => void;
   setCnIpNoResolve: (value: boolean) => void;
   setExperimentalCnUseCnRuleSet: (value: boolean) => void;
   setListenerPort: (nodeName: string, port: number | null) => void;
@@ -339,6 +341,7 @@ export const initialState: ConfigState = {
   hiddenProxyGroups: [],
   customProxyGroups: [], // 自定义分流组
   proxyGroupAdvanced: {},
+  proxyGroupAdvancedModeEnabled: false,
   customRuleSets: [],
   builtinRuleEdits: {},
   customRules: [],

@@ -68,20 +68,6 @@ describe("subscription config utils", () => {
             targetNodes: [" Target "],
           },
         ],
-        filteredProxyGroups: [
-          {
-            id: "filtered",
-            name: "Filtered",
-            enabled: true,
-            groupType: "load-balance",
-            strategy: "round-robin",
-            sourceIds: ["airport"],
-            regions: ["US", "bad"],
-            includeRegex: " Fast ",
-            excludeRegex: " IPv6 ",
-            excludedNodeNames: [" Slow "],
-          },
-        ],
         listenerPorts: {
           Node: 12000,
           Bad: 70000,
@@ -131,19 +117,6 @@ describe("subscription config utils", () => {
       id: "media",
       strategy: "consistent-hashing",
     });
-    expect(options.customProxyGroups?.[1]).toMatchObject({
-      id: "migrated-filtered-filtered",
-      name: "Filtered",
-      groupType: "load-balance",
-      strategy: "round-robin",
-      advanced: {
-        sourceIds: ["airport"],
-        regions: ["us"],
-        includeRegex: "Fast",
-        excludeRegex: "IPv6",
-        excludedMembers: [{ kind: "node", name: "Slow" }],
-      },
-    });
     expect(options.customRuleSets?.[0]).toMatchObject({
       id: "youtube",
       name: "YouTube",
@@ -187,18 +160,6 @@ describe("subscription config utils", () => {
           { id: "bad-path", name: "Bad", behavior: "domain", path: "plain.txt", target: "Fallback" },
         ],
         dialerProxyGroups: ["bad", { id: "bad", name: "Bad", type: "bad" }],
-        filteredProxyGroups: [
-          "bad",
-          { id: "", name: "Bad", enabled: true },
-          {
-            id: "select-default",
-            name: "Select Default",
-            enabled: false,
-            groupType: "unknown",
-            emoji: "S",
-            regions: "us",
-          },
-        ],
         listenerPorts: "bad",
         proxyGroupNameOverrides: "bad",
         proxyGroupOrder: [],
@@ -241,11 +202,6 @@ describe("subscription config utils", () => {
           { id: "select", name: "Select", emoji: "S", groupType: "select" },
           { id: "url-test", name: "Auto", emoji: "A", groupType: "url-test" },
         ],
-        filteredProxyGroups: [
-          { id: "fallback", name: "Fallback", enabled: true, groupType: "fallback", sourceIds: [123, "airport"] },
-          { id: "direct", name: "Direct", enabled: true, groupType: "direct-first", regions: ["HK", "other"] },
-          { id: "reject", name: "Reject", enabled: true, groupType: "reject-first" },
-        ],
       },
       { nodes: [node()] }
     );
@@ -256,11 +212,6 @@ describe("subscription config utils", () => {
     expect(minimal.customProxyGroups?.map((group) => group.groupType)).toEqual([
       "select",
       "url-test",
-      "fallback",
-      "direct-first",
-      "reject-first",
     ]);
-    expect(minimal.customProxyGroups?.[2].advanced?.sourceIds).toEqual(["airport"]);
-    expect(minimal.customProxyGroups?.[3].advanced?.regions).toEqual(["hk", "other"]);
   });
 });
