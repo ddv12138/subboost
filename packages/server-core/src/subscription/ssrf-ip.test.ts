@@ -63,7 +63,7 @@ describe("SSRF IP classification", () => {
   });
 
   it("normalizes resolved addresses before validation", () => {
-    expect(normalizeResolvedIpAddresses([" 198.18.3.6 ", "", "  ", "8.8.8.8"])).toEqual([
+    expect(normalizeResolvedIpAddresses([" 198.18.3.6 ", "", "  ", 123 as never, "8.8.8.8"])).toEqual([
       "198.18.3.6",
       "8.8.8.8",
     ]);

@@ -35,6 +35,21 @@ function ok(body: Uint8Array): DohTransportResponse {
   return { statusCode: 200, body };
 }
 
+function header(questionCount: number, answerCount: number): Uint8Array {
+  const out = new Uint8Array(12);
+  const view = new DataView(out.buffer);
+  view.setUint16(4, questionCount);
+  view.setUint16(6, answerCount);
+  return out;
+}
+
+function malformedAnswerName(firstNameByte: number): Uint8Array {
+  const out = new Uint8Array(13);
+  out.set(header(0, 1));
+  out[12] = firstNameByte;
+  return out;
+}
+
 describe("RFC8484 DoH resolver", () => {
   it("posts DNS wire messages and returns A/AAAA addresses from the first usable endpoint", async () => {
     const transport = vi
@@ -86,5 +101,57 @@ describe("RFC8484 DoH resolver", () => {
         transport: vi.fn().mockResolvedValue(ok(dnsResponse([]))),
       })
     ).resolves.toEqual([]);
+  });
+
+  it("fails closed for blank hostnames, malformed DNS messages, and thrown endpoints", async () => {
+    const longQuestion = [
+      ...Array.from({ length: 129 }, () => [1, 97]).flat(),
+      0,
+      0,
+      1,
+      0,
+      1,
+    ];
+    const truncatedData = new Uint8Array([
+      ...Array.from(header(0, 1)),
+      0xc0,
+      0x0c,
+      0x00,
+      0x01,
+      0x00,
+      0x01,
+      0x00,
+      0x00,
+      0x00,
+      0x3c,
+      0x00,
+      0x04,
+      1,
+      2,
+    ]);
+    const malformedBodies = [
+      new Uint8Array([1, 2, 3]),
+      header(1, 0),
+      header(0, 1),
+      truncatedData,
+      malformedAnswerName(0xc0),
+      malformedAnswerName(0x80),
+      new Uint8Array([...Array.from(header(1, 0)), ...longQuestion]),
+    ];
+    const transport = vi.fn(async () => {
+      const body = malformedBodies.shift();
+      if (body) return ok(body);
+      throw new Error("endpoint unavailable");
+    });
+
+    await expect(resolveHostnameByDoh("   ", { transport })).resolves.toEqual([]);
+    await expect(
+      resolveHostnameByDoh("example.test", {
+        endpoints: ["https://bad-a.example/dns-query", "https://bad-b.example/dns-query", "https://bad-c.example/dns-query", "https://bad-d.example/dns-query"],
+        transport,
+      })
+    ).resolves.toEqual([]);
+
+    expect(transport).toHaveBeenCalledTimes(8);
   });
 });
