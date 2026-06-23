@@ -96,6 +96,28 @@ describe("createProxyGroupActions", () => {
     expect(getState()).toBe(beforeRestore);
   });
 
+  it("normalizes legacy hidden group lists while hiding builtin groups", () => {
+    const harness = createHarness({
+      enabledProxyGroups: ["select", "ai"],
+      hiddenProxyGroups: "ai" as never,
+    });
+
+    harness.actions.hideProxyGroup("ai");
+
+    expect(harness.getState().hiddenProxyGroups).toEqual(["ai"]);
+    expect(harness.getState().enabledProxyGroups).toEqual(["select"]);
+
+    const duplicateHarness = createHarness({
+      enabledProxyGroups: ["select", "ai"],
+      hiddenProxyGroups: ["ai"],
+    });
+
+    duplicateHarness.actions.hideProxyGroup("ai");
+
+    expect(duplicateHarness.getState().hiddenProxyGroups).toEqual(["ai"]);
+    expect(duplicateHarness.getState().enabledProxyGroups).toEqual(["select"]);
+  });
+
   it("updates advanced config for builtin proxy groups", () => {
     const { actions, getState } = createHarness({
       proxyGroupAdvanced: {
@@ -132,6 +154,16 @@ describe("createProxyGroupActions", () => {
     actions.updateProxyGroupAdvanced("", { includeRegex: "Ignored" });
     actions.updateProxyGroupAdvanced("missing", { includeRegex: "Ignored" });
     expect(getState()).toBe(beforeMissingUpdate);
+  });
+
+  it("updates advanced config from empty state and empty patches", () => {
+    const { actions, getState } = createHarness({
+      proxyGroupAdvanced: undefined,
+    });
+
+    actions.updateProxyGroupAdvanced("ai", undefined as never);
+
+    expect(getState().proxyGroupAdvanced.ai).toEqual({});
   });
 
   it("adds, updates, removes, and restores module rules", () => {
@@ -202,6 +234,53 @@ describe("createProxyGroupActions", () => {
 
     actions.removeModuleRule("ai", "custom-ai");
     expect(getState().customRuleSets).toEqual([]);
+  });
+
+  it("disables moved builtin rule edits when removed from custom target groups", () => {
+    const { actions, getState } = createHarness({
+      customProxyGroups: [{ id: "custom-1", name: "Custom", emoji: "", groupType: "select" }],
+      builtinRuleEdits: {
+        "module:ai:openai": { target: "Custom", enabled: true },
+      },
+    });
+
+    actions.removeModuleRule("custom-1", "openai");
+
+    expect(getState().builtinRuleEdits).toEqual({
+      "module:ai:openai": { target: "Custom", enabled: false },
+    });
+  });
+
+  it("keeps missing rule-set targets as no-ops and retargets moved builtin edits", () => {
+    const { actions, getState } = createHarness({
+      customProxyGroups: [
+        { id: "blank", name: " ", emoji: "", groupType: "select" },
+      ],
+      customRuleSets: [
+        { id: "custom-ai", name: "Custom AI", behavior: "domain", path: "geosite/custom-ai.mrs", target: "🤖 AI 服务" },
+      ],
+      builtinRuleEdits: {
+        "module:ai:openai": { target: "🤖 AI 服务", enabled: false },
+      },
+    });
+
+    const beforeMissingTargets = getState();
+    actions.addModuleRules("blank", [
+      { id: "ignored", name: "Ignored", behavior: "domain", path: "geosite/ignored.mrs" },
+    ]);
+    actions.updateModuleRule("blank", "custom-ai", { name: "Ignored" });
+    expect(getState()).toBe(beforeMissingTargets);
+
+    actions.removeModuleRule("ai", "openai");
+    expect(getState().builtinRuleEdits).toEqual({
+      "module:ai:openai": { target: "🤖 AI 服务", enabled: false },
+    });
+
+    actions.moveModuleRule("ai", "openai", { kind: "module", id: "youtube" });
+    expect(getState().enabledProxyGroups).toContain("youtube");
+    expect(getState().builtinRuleEdits).toEqual({
+      "module:ai:openai": { target: "📹 油管视频" },
+    });
   });
 
   it("keeps full rule order positions across preset rule remove, restore, hide, and move", () => {
@@ -375,6 +454,7 @@ describe("createProxyGroupActions", () => {
     });
 
     actions.restoreModuleDefaultRules("ai");
+    actions.restoreModuleDefaultRules("missing");
     expect(getState().builtinRuleEdits).toEqual({ "module:youtube:youtube": { enabled: false } });
 
     actions.restoreModuleDefaultRules("");
@@ -383,6 +463,21 @@ describe("createProxyGroupActions", () => {
 
     actions.acceptModuleRuleEditWarning();
     expect(getState().moduleRuleEditWarningAccepted).toBe(true);
+  });
+
+  it("keeps reset rule target no-ops stable for invalid or already-default rules", () => {
+    const { actions, getState } = createHarness({
+      builtinRuleEdits: {},
+    });
+
+    const before = getState();
+    actions.resetModuleRuleTarget("", "openai");
+    actions.resetModuleRuleTarget("ai", "");
+    actions.resetModuleRuleTarget("missing", "openai");
+    actions.resetModuleRuleTarget("ai", "missing");
+    actions.resetModuleRuleTarget("ai", "openai");
+
+    expect(getState()).toBe(before);
   });
 
   it("moves module rules into another builtin group or a custom group", () => {
@@ -509,6 +604,13 @@ describe("createProxyGroupActions", () => {
         { id: "rule-1", type: "DOMAIN", value: "example.com", target: "🤖 AI 服务" },
         { id: "rule-2", type: "DOMAIN", value: "example.net", target: "🚀 节点选择" },
       ],
+      customRuleSets: [
+        { id: "rs-1", name: "RS", behavior: "domain", path: "geosite/rs.mrs", target: "🤖 AI 服务" },
+        { id: "rs-2", name: "Other", behavior: "domain", path: "geosite/other.mrs", target: "🚀 节点选择" },
+      ],
+      builtinRuleEdits: {
+        "module:ai:openai": { target: "🤖 AI 服务" },
+      },
     });
 
     actions.setProxyGroupNameOverride("select", "Main");
@@ -519,10 +621,15 @@ describe("createProxyGroupActions", () => {
     expect(getState().proxyGroupNameOverrides).toEqual({ ai: "Labs" });
     expect(getState().customRules[0].target).toBe("🤖 Labs");
     expect(getState().customRules[1].target).toBe("🚀 节点选择");
+    expect(getState().customRuleSets[0].target).toBe("🤖 Labs");
+    expect(getState().customRuleSets[1].target).toBe("🚀 节点选择");
+    expect(getState().builtinRuleEdits["module:ai:openai"].target).toBe("🤖 Labs");
 
     actions.setProxyGroupNameOverride("ai", "");
     expect(getState().proxyGroupNameOverrides).toEqual({ ai: "" });
     expect(getState().customRules[0].target).toBe("🤖 AI 服务");
+    expect(getState().customRuleSets[0].target).toBe("🤖 AI 服务");
+    expect(getState().customRuleSets[1].target).toBe("🚀 节点选择");
 
     actions.setProxyGroupNameOverride("ai", "Labs");
     actions.clearProxyGroupNameOverride("ai");
@@ -530,6 +637,9 @@ describe("createProxyGroupActions", () => {
     actions.clearProxyGroupNameOverride("select");
     expect(getState().proxyGroupNameOverrides).toEqual({});
     expect(getState().customRules[0].target).toBe("🤖 AI 服务");
+    expect(getState().customRuleSets[0].target).toBe("🤖 AI 服务");
+    expect(getState().customRuleSets[1].target).toBe("🚀 节点选择");
+    expect(getState().builtinRuleEdits["module:ai:openai"].target).toBe("🤖 AI 服务");
   });
 
   it("renames groups when override maps are not initialized", () => {

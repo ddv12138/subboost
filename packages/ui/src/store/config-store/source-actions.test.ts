@@ -337,6 +337,28 @@ describe("createSourceActions", () => {
     });
   });
 
+  it("keeps original URL text when a fetched single source cannot be normalized", async () => {
+    mocks.fetchUrlContentInBrowser.mockResolvedValueOnce({
+      content: "ss://remote",
+      headers: {},
+    });
+    mocks.parseSubscription.mockReturnValueOnce(parseResult([node("Remote Node")]));
+    const { actions, getState } = createHarness({
+      sources: [source({ id: "s1", type: "url", content: "not a url" })],
+    });
+
+    await actions.parseSingleSource("s1");
+
+    expect(getState().nodes).toEqual([
+      expect.objectContaining({ name: "Remote Node", _originName: "Remote Node", _sourceIds: ["s1"] }),
+    ]);
+    expect(getState().sources[0]).toMatchObject({
+      parsed: true,
+      lastParsedContent: "not a url",
+      subscriptionUserInfo: undefined,
+    });
+  });
+
   it("reimports changed URL sources while preserving unrelated source state", async () => {
     mocks.fetchUrlContentInBrowser.mockResolvedValueOnce({
       content: "ss://fresh",

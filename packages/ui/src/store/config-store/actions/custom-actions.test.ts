@@ -106,6 +106,63 @@ describe("custom config-store actions", () => {
     expect(getState().customRuleSets).toEqual([]);
   });
 
+  it("normalizes advanced custom proxy group fields and keeps blank-name removals narrow", () => {
+    const { actions, getState } = createHarness({
+      customProxyGroups: [
+        { id: "blank", name: " ", emoji: "", groupType: "select" },
+      ],
+      customRuleSets: [
+        { id: "keep", name: "Keep", behavior: "domain", path: "geosite/keep.mrs", target: "Keep" },
+      ],
+    });
+
+    actions.addCustomProxyGroup({
+      name: "Load Balance",
+      emoji: "LB",
+      enabled: false,
+      description: "  Fast nodes  ",
+      memberSource: "filtered-nodes",
+      includeInGroupMembers: false,
+      groupType: "load-balance",
+      strategy: "round-robin",
+      advanced: {
+        includeRegex: "HK",
+        sourceIds: ["s1", "s1", ""],
+      },
+    });
+
+    const groupId = getState().customProxyGroups[1].id;
+    expect(getState().customProxyGroups[1]).toEqual(
+      expect.objectContaining({
+        advanced: expect.objectContaining({ includeRegex: "HK", sourceIds: ["s1"] }),
+        description: "Fast nodes",
+        enabled: false,
+        includeInGroupMembers: false,
+        memberSource: "filtered-nodes",
+        strategy: "round-robin",
+      })
+    );
+
+    actions.updateCustomProxyGroup(groupId, {
+      enabled: true,
+      description: "  Updated  ",
+      advanced: { excludeRegex: "US" },
+    });
+    expect(getState().customProxyGroups[1]).toEqual(
+      expect.objectContaining({
+        advanced: expect.objectContaining({ excludeRegex: "US" }),
+        description: "Updated",
+        enabled: true,
+      })
+    );
+
+    actions.removeCustomProxyGroup("blank");
+    expect(getState().customProxyGroups.map((group: { id: string }) => group.id)).toEqual([groupId]);
+    expect(getState().customRuleSets).toEqual([
+      { id: "keep", name: "Keep", behavior: "domain", path: "geosite/keep.mrs", target: "Keep" },
+    ]);
+  });
+
   it("keeps custom rule targets unchanged when group updates do not rename a group", () => {
     const { actions, getState } = createHarness({
       customRules: [rule({ id: "r1", target: "Stable Group" })],
