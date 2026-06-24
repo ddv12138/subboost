@@ -19,15 +19,27 @@ function toTrimmedString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function trimLeadingSlashes(value: string): string {
+  let index = 0;
+  while (index < value.length && value.charCodeAt(index) === 47) index += 1;
+  return value.slice(index);
+}
+
+function trimTrailingSlashes(value: string): string {
+  let end = value.length;
+  while (end > 0 && value.charCodeAt(end - 1) === 47) end -= 1;
+  return value.slice(0, end);
+}
+
 export function extractRuleSetPathFromUrl(url: string): string {
   const trimmed = url.trim();
   const match = trimmed.match(/(?:^|\/)(geosite|geoip)\/[^/?#\s]+\.mrs/i);
   if (!match) return trimmed;
-  return match[0].replace(/^\/+/, "");
+  return trimLeadingSlashes(match[0]);
 }
 
 export function normalizeRuleSetPathInput(input: string): string {
-  return extractRuleSetPathFromUrl(input).replace(/^\/+/, "").trim();
+  return trimLeadingSlashes(extractRuleSetPathFromUrl(input)).trim();
 }
 
 export function isValidRuleSetPathOrUrl(value: string): boolean {
@@ -38,7 +50,7 @@ export function isValidRuleSetPathOrUrl(value: string): boolean {
 export function buildRuleSetUrlFromPath(path: string, baseUrl: string): string {
   const normalizedPath = normalizeRuleSetPathInput(path);
   if (/^https?:\/\//i.test(normalizedPath)) return normalizedPath;
-  return `${baseUrl.replace(/\/+$/, "")}/${normalizedPath}`;
+  return `${trimTrailingSlashes(baseUrl)}/${normalizedPath}`;
 }
 
 function normalizeBehavior(value: unknown): RuleSetBehavior | null {
