@@ -24,7 +24,10 @@ import {
 } from "@subboost/core/subscription/subscription-response-info";
 import type { SubscriptionImportErrorCategory } from "@subboost/core/subscription/import-error";
 import type { ParsedNode } from "@subboost/core/types/node";
+import type { SpeedTestConfig } from "@subboost/core/types/config";
+import { DEFAULT_SPEED_TEST_CONFIG } from "@subboost/core/config/defaults";
 import { normalizeSavedSourcesForPersistence, type SavedSource, type SavedSourceType } from "./saved-sources";
+import { measureAllNodesLatency } from "../speedtest";
 
 type UrlNodeFetchResult = {
   ok: boolean;
@@ -350,6 +353,18 @@ export async function refreshNodeSnapshot(
   }
   if (!planNameState.conflicted && planNameState.value) {
     subscriptionInfo.planName = planNameState.value;
+  }
+
+  const rawSpeedTest = options.config.speedTest as SpeedTestConfig | undefined;
+  const speedTestConfig: SpeedTestConfig = {
+    enabled: typeof rawSpeedTest?.enabled === "boolean" ? rawSpeedTest.enabled : DEFAULT_SPEED_TEST_CONFIG.enabled,
+    maxOutputNodes: typeof rawSpeedTest?.maxOutputNodes === "number" ? rawSpeedTest.maxOutputNodes : DEFAULT_SPEED_TEST_CONFIG.maxOutputNodes,
+    timeout: typeof rawSpeedTest?.timeout === "number" ? rawSpeedTest.timeout : DEFAULT_SPEED_TEST_CONFIG.timeout,
+    concurrency: typeof rawSpeedTest?.concurrency === "number" ? rawSpeedTest.concurrency : DEFAULT_SPEED_TEST_CONFIG.concurrency,
+  };
+
+  if (speedTestConfig.enabled) {
+    currentNodes = await measureAllNodesLatency(currentNodes, speedTestConfig);
   }
 
   return {

@@ -1,3 +1,4 @@
+import type { SpeedTestConfig } from "@subboost/core/types/config";
 import type { ConfigActions } from "../definitions";
 import type { GetState, SetAndGenerateConfig, SetState } from "../store-types";
 
@@ -12,6 +13,7 @@ type SettingsActions = Pick<
   | "setProxyGroupAdvancedModeEnabled"
   | "setCnIpNoResolve"
   | "setExperimentalCnUseCnRuleSet"
+  | "setSpeedTest"
 >;
 
 export function createSettingsActions(
@@ -54,6 +56,12 @@ export function createSettingsActions(
 
     setExperimentalCnUseCnRuleSet: (value: boolean) => {
       setAndGenerateConfig(() => ({ experimentalCnUseCnRuleSet: Boolean(value) }));
+    },
+
+    setSpeedTest: (value: Partial<SpeedTestConfig>) => {
+      setAndGenerateConfig((state) => ({
+        speedTest: { ...state.speedTest, ...value },
+      }));
     },
   };
 }

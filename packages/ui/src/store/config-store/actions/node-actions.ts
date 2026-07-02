@@ -16,6 +16,7 @@ type NodeActions = Pick<
   | "bulkRenameNodes"
   | "setListenerPort"
   | "bulkSetListenerPorts"
+  | "applyNodeLatencies"
 >;
 
 export function createNodeActions(
@@ -458,6 +459,25 @@ export function createNodeActions(
         }
 
         return changed ? { listenerPorts: next } : state;
+      });
+    },
+
+    applyNodeLatencies: (results) => {
+      setAndGenerateConfig((state) => {
+        const latencyByName = new Map(results.map((r) => [r.name, r.latency]));
+        const updatedNodes = state.nodes.map((node) => {
+          const latency = latencyByName.get(node.name) ?? null;
+          const record = node as unknown as Record<string, unknown>;
+          const existingMeta = record._meta as Record<string, unknown> | undefined;
+          return {
+            ...node,
+            _meta: {
+              ...(existingMeta || {}),
+              latency: latency ?? undefined,
+            },
+          } as unknown as typeof node;
+        });
+        return { nodes: updatedNodes };
       });
     },
   };

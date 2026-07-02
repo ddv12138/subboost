@@ -8,7 +8,7 @@ import {
   type SubscriptionSource,
   type DialerProxyGroup,
 } from "@subboost/ui/store/config-store";
-import type { BuiltinRuleEdits, CustomRule, CustomProxyGroup, CustomRuleSet } from "@subboost/core/types/config";
+import type { BuiltinRuleEdits, CustomRule, CustomProxyGroup, CustomRuleSet, SpeedTestConfig } from "@subboost/core/types/config";
 import type { User } from "@subboost/ui/store/user-store";
 import { useConfigStore } from "@subboost/ui/store/config-store";
 import { captureAuthConfigHandoff } from "@subboost/ui/store/config-store/auth-handoff";
@@ -89,6 +89,7 @@ type Options = {
   testInterval: number;
   cnIpNoResolve: boolean;
   experimentalCnUseCnRuleSet: boolean;
+  speedTest: SpeedTestConfig;
 };
 
 export function useSubscriptionLink({
@@ -123,6 +124,7 @@ export function useSubscriptionLink({
   testInterval,
   cnIpNoResolve,
   experimentalCnUseCnRuleSet,
+  speedTest,
 }: Options) {
   const autoUpdatePolicy = React.useMemo(
     () =>
@@ -394,6 +396,7 @@ export function useSubscriptionLink({
             testInterval,
             cnIpNoResolve,
             experimentalCnUseCnRuleSet,
+            speedTest,
             autoSelectStrategy: "url-test",
           },
         };
@@ -488,6 +491,7 @@ export function useSubscriptionLink({
     template,
     testInterval,
     testUrl,
+    speedTest,
     trackSubscriptionMutation,
   ]);
 

@@ -158,7 +158,17 @@ export interface ClashConfig {
 /**
  * 用户配置选项
  */
+export interface SpeedTestConfig {
+  enabled: boolean;
+  maxOutputNodes: number;
+  timeout: number;
+  concurrency: number;
+}
+
 export interface UserConfig {
+  // 测速筛选
+  speedTest?: SpeedTestConfig;
+
   // 代理组设置
   enabledGroups: string[];
   autoSelectStrategy: "url-test" | "fallback" | "load-balance";

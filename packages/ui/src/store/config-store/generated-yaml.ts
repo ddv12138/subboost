@@ -58,7 +58,7 @@ function buildGenerateClashYamlOptions(
     template: state.template,
     userConfig: {
       enabledGroups: state.enabledProxyGroups,
-      enabledRules: state.enabledProxyGroups, // 规则和组现在使用同一列表
+      enabledRules: state.enabledProxyGroups,
       customRules: state.customRules,
       ruleOrder: state.ruleOrder,
       cnIpNoResolve: state.cnIpNoResolve,
@@ -79,6 +79,7 @@ function buildGenerateClashYamlOptions(
     proxyGroupAdvanced: state.proxyGroupAdvanced,
     proxyGroupNameOverrides: state.proxyGroupNameOverrides,
     proxyGroupOrder: state.proxyGroupOrder,
+    speedTest: state.speedTest,
   };
 }
 

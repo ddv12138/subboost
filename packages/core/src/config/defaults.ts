@@ -2,8 +2,15 @@ import { DEFAULT_DNS_CONFIG } from "@subboost/core/generator/dns";
 import { DEFAULT_RULE_PROVIDER_BASE_URL } from "@subboost/core/rules/metadata";
 import { TEMPLATES } from "@subboost/core/templates";
 import { SUBBOOST_TEMPLATE_CONFIG_SCHEMA } from "@subboost/core/templates/config-template";
-import type { ClashConfig, TemplateType, UserConfig } from "@subboost/core/types/config";
+import type { ClashConfig, SpeedTestConfig, TemplateType, UserConfig } from "@subboost/core/types/config";
 import type { SubBoostTemplateConfig } from "@subboost/core/types/template-config";
+
+export const DEFAULT_SPEED_TEST_CONFIG = {
+  enabled: false,
+  maxOutputNodes: 5,
+  timeout: 1000,
+  concurrency: 10,
+} as const satisfies SpeedTestConfig;
 
 export const DEFAULT_SUBBOOST_CONFIG = {
   autoSelectStrategy: "url-test",
@@ -17,6 +24,7 @@ export const DEFAULT_SUBBOOST_CONFIG = {
   dnsYaml: "",
   mixedPort: 7897,
   allowLan: true,
+  speedTest: DEFAULT_SPEED_TEST_CONFIG,
 } as const satisfies Omit<UserConfig, "enabledGroups" | "enabledRules">;
 
 export function buildDefaultUserConfig(template: TemplateType): UserConfig {
@@ -35,6 +43,7 @@ export function buildDefaultUserConfig(template: TemplateType): UserConfig {
     dnsYaml: DEFAULT_SUBBOOST_CONFIG.dnsYaml,
     mixedPort: DEFAULT_SUBBOOST_CONFIG.mixedPort,
     allowLan: DEFAULT_SUBBOOST_CONFIG.allowLan,
+    speedTest: { ...DEFAULT_SPEED_TEST_CONFIG },
   };
 }
 
@@ -101,6 +110,7 @@ export function buildDefaultSubBoostTemplateConfig(type: TemplateType): SubBoost
     testUrl: DEFAULT_SUBBOOST_CONFIG.testUrl,
     testInterval: DEFAULT_SUBBOOST_CONFIG.testInterval,
     ruleProviderBaseUrl: DEFAULT_SUBBOOST_CONFIG.ruleProviderBaseUrl,
+    speedTest: { ...DEFAULT_SPEED_TEST_CONFIG },
   };
 }
 

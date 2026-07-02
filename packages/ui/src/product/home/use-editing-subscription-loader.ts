@@ -540,6 +540,14 @@ export function useEditingSubscriptionLoader({
             typeof cfg.ruleProviderBaseUrl === "string" ? (cfg.ruleProviderBaseUrl as string) : state.ruleProviderBaseUrl,
           testUrl: typeof cfg.testUrl === "string" ? (cfg.testUrl as string) : state.testUrl,
           testInterval: typeof cfg.testInterval === "number" ? (cfg.testInterval as number) : state.testInterval,
+          speedTest: typeof (cfg as any).speedTest === "object" && (cfg as any).speedTest !== null
+            ? {
+                enabled: (cfg as any).speedTest.enabled === true,
+                maxOutputNodes: typeof (cfg as any).speedTest.maxOutputNodes === "number" ? (cfg as any).speedTest.maxOutputNodes : state.speedTest.maxOutputNodes,
+                timeout: typeof (cfg as any).speedTest.timeout === "number" ? (cfg as any).speedTest.timeout : state.speedTest.timeout,
+                concurrency: typeof (cfg as any).speedTest.concurrency === "number" ? (cfg as any).speedTest.concurrency : state.speedTest.concurrency,
+              }
+            : state.speedTest,
           cnIpNoResolve: typeof (cfg as any).cnIpNoResolve === "boolean" ? Boolean((cfg as any).cnIpNoResolve) : state.cnIpNoResolve,
           experimentalCnUseCnRuleSet:
             typeof (cfg as any).experimentalCnUseCnRuleSet === "boolean"

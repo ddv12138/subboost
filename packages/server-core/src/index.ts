@@ -3,5 +3,6 @@ export * from "./cron-auth";
 export * from "./crypto";
 export * from "./http";
 export * from "./rules";
+export * from "./speedtest";
 export * from "./subscription";
 export * from "./templates";

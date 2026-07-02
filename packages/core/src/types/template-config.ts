@@ -6,6 +6,7 @@ import type {
   LoadBalanceStrategy,
   ProxyGroupAdvancedConfig,
   ProxyGroupGroupType,
+  SpeedTestConfig,
   TemplateType,
 } from "./config";
 
@@ -42,4 +43,5 @@ export type SubBoostTemplateConfig = {
   testUrl: string;
   testInterval: number;
   ruleProviderBaseUrl: string;
+  speedTest?: SpeedTestConfig;
 };

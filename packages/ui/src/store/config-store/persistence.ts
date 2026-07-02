@@ -41,6 +41,18 @@ export function normalizePersistedConfigState(
   if (options.discardDraft) return {};
   const state = (isRecord(persistedState) ? persistedState : {}) as Partial<ConfigState>;
 
+  const speedTestState = isRecord(state.speedTest)
+    ? {
+        speedTest: {
+          enabled: state.speedTest.enabled === true,
+          maxOutputNodes:
+            typeof state.speedTest.maxOutputNodes === "number" ? state.speedTest.maxOutputNodes : 5,
+          timeout: typeof state.speedTest.timeout === "number" ? state.speedTest.timeout : 1000,
+          concurrency: typeof state.speedTest.concurrency === "number" ? state.speedTest.concurrency : 10,
+        },
+      }
+    : {};
+
   return {
     ...(state.template === "minimal" || state.template === "standard" || state.template === "full"
       ? { template: state.template }
@@ -61,6 +73,7 @@ export function normalizePersistedConfigState(
     cnIpNoResolve: typeof state.cnIpNoResolve === "boolean" ? state.cnIpNoResolve : true,
     experimentalCnUseCnRuleSet:
       typeof state.experimentalCnUseCnRuleSet === "boolean" ? state.experimentalCnUseCnRuleSet : true,
+    ...speedTestState,
   } as Partial<ConfigState>;
 }
 
@@ -78,6 +91,7 @@ export function partializeConfigState(state: ConfigState): Partial<ConfigState> 
     proxyGroupAdvancedModeEnabled: state.proxyGroupAdvancedModeEnabled,
     cnIpNoResolve: state.cnIpNoResolve,
     experimentalCnUseCnRuleSet: state.experimentalCnUseCnRuleSet,
+    speedTest: state.speedTest,
   };
 }
 

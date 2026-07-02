@@ -15,6 +15,37 @@
 
 **SubBoost** is a **Clash/Mihomo subscription conversion, enhancement, and management** tool. It can convert airport subscriptions and self-hosted nodes into optimized aggregate subscriptions, then update them automatically. With the visual UI, you can configure advanced features such as **chained proxies, precise routing, DNS leak prevention, and multi-subscription aggregation** in one click.
 
+## 本 Fork 新增：节点测速与最优节点筛选
+
+### 功能概述
+
+对订阅中所有节点进行延迟测速（TCP 连接 / TLS 握手 / UDP 探测），按延迟升序排序，只保留前 N 个最优节点输出到订阅 YAML 中。测速失败的节点（超时/不可达）自动剔除。
+
+### 前端交互
+
+- 高级模式新增「节点测速筛选」面板，位于节点导入与节点管理之间
+- 配置项：启用开关、最大输出节点数（默认 5）、测速超时（默认 1000ms）、并发数（默认 10）
+- 点击「开始测速」按钮触发测速，结果实时同步到右侧 YAML 预览
+- 测速后展示完整节点延迟排序列表，所有节点始终可见，标注已选 / 已剔除 / 不可达 / 未测速
+- 未登录用户不可使用配置界面，页面引导登录
+
+### 服务端
+
+- 基于 Node.js 内置模块实现测速引擎：
+  - TCP 协议（SS / VMess / VLESS / Trojan / HTTP / SOCKS 等）→ TCP connect + TLS 握手
+  - UDP 协议（Hysteria / WireGuard / TUIC）→ `dgram` 发包测往返
+- 刷新订阅时自动测速（受 `speedTest.enabled` 控制）
+- 新增 `POST /api/speed-test` API，支持前端手动触发测速
+- 测速结果以 `_meta.latency` 形式与节点一同持久化
+
+### 筛选逻辑
+
+YAML 生成时根据 `_meta.latency` 排序，剔除不可达节点，取前 `maxOutputNodes` 个。前置的代理组高级筛选（region / regex / sourceIds）不受影响，中转组和目标节点引用会自动清理。
+
+### 向后兼容
+
+`speedTest` 字段可选，缺省时 `enabled: false`，跳过筛选。不改数据库 Schema，不迁移。
+
 ## Highlights & Use Cases
 
 - **Subscription conversion**: Import subscription links, YAML files, node links, and other common formats.

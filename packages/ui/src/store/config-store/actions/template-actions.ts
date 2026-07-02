@@ -176,6 +176,10 @@ export function createTemplateActions(
             typeof config.ruleProviderBaseUrl === "string"
               ? config.ruleProviderBaseUrl
               : state.ruleProviderBaseUrl,
+          speedTest:
+            config.speedTest && typeof config.speedTest === "object"
+              ? { ...state.speedTest, ...config.speedTest }
+              : state.speedTest,
         };
       });
     },

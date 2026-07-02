@@ -5,9 +5,10 @@ import type {
   CustomRule,
   CustomRuleSet,
   ProxyGroupAdvancedConfig,
+  SpeedTestConfig,
   TemplateType,
 } from "@subboost/core/types/config";
-import { DEFAULT_BASE_CONFIG_YAML, DEFAULT_SUBBOOST_CONFIG } from "@subboost/core/config/defaults";
+import { DEFAULT_BASE_CONFIG_YAML, DEFAULT_SPEED_TEST_CONFIG, DEFAULT_SUBBOOST_CONFIG } from "@subboost/core/config/defaults";
 import { getBuiltinTemplateId } from "@subboost/core/templates/builtin";
 import { TEMPLATES } from "@subboost/core/templates";
 import type { DialerProxyGroup, SubBoostTemplateConfig } from "@subboost/core/types/template-config";
@@ -209,6 +210,9 @@ export interface ConfigState {
   cnIpNoResolve: boolean;
   experimentalCnUseCnRuleSet: boolean;
 
+  // 测速筛选配置
+  speedTest: SpeedTestConfig;
+
   // 节点监听端口（用于生成 listeners）
   listenerPorts: Record<string, number>;
 
@@ -301,6 +305,10 @@ export interface ConfigActions {
   setListenerPort: (nodeName: string, port: number | null) => void;
   bulkSetListenerPorts: (patch: Record<string, number | null>) => void;
 
+  // 测速筛选
+  setSpeedTest: (value: Partial<SpeedTestConfig>) => void;
+  applyNodeLatencies: (results: Array<{ name: string; latency: number | null }>) => void;
+
   // 生成配置
   generateConfig: () => string;
   setGeneratedYaml: (yaml: string) => void;
@@ -359,6 +367,7 @@ export const initialState: ConfigState = {
   ruleProviderBaseUrl: DEFAULT_SUBBOOST_CONFIG.ruleProviderBaseUrl,
   cnIpNoResolve: DEFAULT_SUBBOOST_CONFIG.cnIpNoResolve,
   experimentalCnUseCnRuleSet: DEFAULT_SUBBOOST_CONFIG.experimentalCnUseCnRuleSet,
+  speedTest: { ...DEFAULT_SPEED_TEST_CONFIG },
   listenerPorts: {},
   generatedYaml: "",
   generatedYamlError: null,

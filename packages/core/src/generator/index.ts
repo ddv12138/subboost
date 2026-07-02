@@ -28,12 +28,14 @@ import type {
   CustomRuleSet,
   ProxyGroup,
   ProxyGroupAdvancedConfig,
+  SpeedTestConfig,
   TemplateType,
   UserConfig,
 } from "@subboost/core/types/config";
 import type { DialerProxyGroup } from "@subboost/core/types/template-config";
 import { collectDnsPolicyEntries, configToYaml } from "./yaml";
 import { isMihomoSupportedProxyNode, normalizeMihomoVlessForGeneration } from "../mihomo/proxy-sanitizer";
+import { filterNodesByLatency } from "../node-speed-filter";
 import { chooseFallbackPolicyTarget, withBuiltinPolicyTargets } from "./policy-targets";
 
 export interface GenerateOptions {
@@ -48,6 +50,7 @@ export interface GenerateOptions {
   builtinRuleEdits?: BuiltinRuleEdits;
   proxyGroupNameOverrides?: Record<string, string>;
   proxyGroupOrder?: string[];
+  speedTest?: SpeedTestConfig;
 }
 
 type BaseConfig = Record<string, unknown>;
@@ -246,6 +249,12 @@ export function generateClashConfig(options: GenerateOptions): ClashConfig {
   // 确保 proxies.name 全局唯一（否则 Clash 校验会失败）
   const uniqueNodes = ensureUniqueProxyNames(supportedNodes);
 
+  const speedTest = options.speedTest;
+  const speedTestEnabled = speedTest?.enabled ?? false;
+  const filteredNodes = speedTestEnabled
+    ? filterNodesByLatency(uniqueNodes, speedTest!.maxOutputNodes)
+    : uniqueNodes;
+
   // 中转代理组依赖节点名称；订阅更新/重命名后可能出现“引用了不存在的节点”。
   // 在生成阶段做一次清理，避免输出到 Clash 后出现无效 proxies 引用。
   const sanitizeDialerProxyGroups = (
@@ -282,7 +291,7 @@ export function generateClashConfig(options: GenerateOptions): ClashConfig {
     });
   };
 
-  const nodeNameSet = new Set(uniqueNodes.map((n) => n.name));
+  const nodeNameSet = new Set(filteredNodes.map((n) => n.name));
   const activeCustomProxyGroups = customProxyGroups.filter((g) => g && g.enabled !== false);
   const customGroupNameSet = new Set<string>(
     activeCustomProxyGroups.filter((g) => g && typeof g.name === "string" && g.name.trim()).map((g) => g.name.trim())
@@ -301,8 +310,8 @@ export function generateClashConfig(options: GenerateOptions): ClashConfig {
 
   // 应用 dialer-proxy 到目标节点（基于最终输出的唯一节点名）
   const allNodes = sanitizedDialerProxyGroups.length > 0
-    ? applyDialerProxy(uniqueNodes, sanitizedDialerProxyGroups)
-    : uniqueNodes;
+    ? applyDialerProxy(filteredNodes, sanitizedDialerProxyGroups)
+    : filteredNodes;
   const validDialerProxyNames = new Set<string>([
     "DIRECT",
     ...nodeNameSet,

@@ -7,12 +7,13 @@ import { InputSection } from "./sections/input-section";
 import { NodeManagementSection } from "./sections/node-management-section";
 import { ProxyGroupsSection } from "./sections/proxy-groups-section";
 import { RulesManagementSection } from "./sections/rules-management-section";
+import { SpeedTestSection } from "./sections/speed-test-section";
 
-type SectionKey = "input" | "filter" | "chain" | "proxy" | "rules" | "dns";
+type SectionKey = "input" | "speedtest" | "filter" | "chain" | "proxy" | "rules" | "dns";
 
 export function AdvancedMode() {
   const [expandedSections, setExpandedSections] = React.useState<Set<SectionKey>>(
-    new Set<SectionKey>(["input", "filter", "chain", "proxy", "rules", "dns"])
+    new Set<SectionKey>(["input", "speedtest", "filter", "chain", "proxy", "rules", "dns"])
   );
 
   const toggleSection = (section: SectionKey) => {
@@ -27,6 +28,7 @@ export function AdvancedMode() {
   return (
     <div className="flex flex-col gap-2 pb-2">
       <InputSection isExpanded={expandedSections.has("input")} onToggle={() => toggleSection("input")} />
+      <SpeedTestSection isExpanded={expandedSections.has("speedtest")} onToggle={() => toggleSection("speedtest")} />
       <NodeManagementSection
         isExpanded={expandedSections.has("filter")}
         onToggle={() => toggleSection("filter")}

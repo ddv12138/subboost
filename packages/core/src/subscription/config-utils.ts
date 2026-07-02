@@ -15,7 +15,7 @@ import {
 import { stripImportedNodeControlFieldsFromList } from "@subboost/core/subscription/imported-node-controls";
 import { buildProxyProvidersFromConfig } from "@subboost/core/subscription/proxy-providers";
 import { ensureCustomRuleId } from "@subboost/core/rules/custom-rule-utils";
-import { DEFAULT_SUBBOOST_CONFIG } from "@subboost/core/config/defaults";
+import { DEFAULT_SPEED_TEST_CONFIG, DEFAULT_SUBBOOST_CONFIG } from "@subboost/core/config/defaults";
 import { normalizeRuleModelFromConfig } from "@subboost/core/rules/rule-model";
 import { normalizeProxyGroupAdvancedConfig } from "@subboost/core/proxy-group-advanced";
 import { normalizeProxyGroupTargetRef } from "@subboost/core/proxy-group-targets";
@@ -307,6 +307,24 @@ export function buildGenerateOptionsFromConfig(
       )
     : undefined;
 
+  const speedTest = isRecord(config.speedTest)
+    ? {
+        enabled: config.speedTest.enabled === true,
+        maxOutputNodes:
+          typeof config.speedTest.maxOutputNodes === "number"
+            ? config.speedTest.maxOutputNodes
+            : DEFAULT_SPEED_TEST_CONFIG.maxOutputNodes,
+        timeout:
+          typeof config.speedTest.timeout === "number"
+            ? config.speedTest.timeout
+            : DEFAULT_SPEED_TEST_CONFIG.timeout,
+        concurrency:
+          typeof config.speedTest.concurrency === "number"
+            ? config.speedTest.concurrency
+            : DEFAULT_SPEED_TEST_CONFIG.concurrency,
+      }
+    : undefined;
+
   return {
     nodes: sanitizedNodes,
     ...(proxyProviders ? { proxyProviders } : {}),
@@ -319,5 +337,6 @@ export function buildGenerateOptionsFromConfig(
     ...(Object.keys(builtinRuleEdits).length > 0 ? { builtinRuleEdits } : {}),
     ...(proxyGroupNameOverrides ? { proxyGroupNameOverrides } : {}),
     ...(proxyGroupOrder ? { proxyGroupOrder } : {}),
+    ...(speedTest ? { speedTest } : {}),
   };
 }
