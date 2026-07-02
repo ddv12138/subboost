@@ -1,5 +1,5 @@
 export const RULE_PROVIDER_CONFIG = {
-  baseUrl: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo",
+  baseUrl: "https://ghproxy.net/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo",
   github: {
     owner: "MetaCubeX",
     repo: "meta-rules-dat",

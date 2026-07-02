@@ -81,7 +81,7 @@ export function buildDefaultBaseConfigPatch(options: {
       geoip: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.dat",
       geosite: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat",
       mmdb: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/country.mmdb",
-      asn: "https://github.com/xishang0128/geoip/releases/download/latest/GeoLite2-ASN.mmdb",
+      asn: "https://ghproxy.net/https://github.com/xishang0128/geoip/releases/download/latest/GeoLite2-ASN.mmdb",
     },
   };
 }

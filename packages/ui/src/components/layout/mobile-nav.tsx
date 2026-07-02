@@ -27,7 +27,7 @@ const defaultMobileNavItems: MobileNavItem[] = [
 const localMobileNavItems: MobileNavItem[] = [
   { id: "home", href: "/", label: "首页", icon: Home },
   { id: "dashboard", href: "/dashboard", label: "订阅", icon: User, authOnly: true },
-  { id: "templates", href: "/templates", label: "模板", icon: Library },
+  { id: "templates", href: "/templates", label: "模板", icon: Library, authOnly: true },
 ];
 
 export function MobileNav({ mode = "default" }: { mode?: "default" | "local" }) {

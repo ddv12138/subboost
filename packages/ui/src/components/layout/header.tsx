@@ -41,7 +41,7 @@ type NavItem = {
 const sharedNavItems: NavItem[] = [
   { href: "/", label: "首页", icon: Home },
   { href: "/dashboard", label: "我的订阅", icon: LayoutDashboard, authOnly: true },
-  { href: "/templates", label: "模板库", icon: Library },
+  { href: "/templates", label: "模板库", icon: Library, authOnly: true },
 ];
 
 const defaultNavItems: NavItem[] = [

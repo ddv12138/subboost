@@ -113,10 +113,19 @@ function TemplateLibraryInner({ adapter }: Props) {
   const [isUploading, setIsUploading] = React.useState(false);
   const [uploadMode, setUploadMode] = React.useState<"config" | "yaml">("config");
   const [uploadYamlContent, setUploadYamlContent] = React.useState("");
+  const [authChecked, setAuthChecked] = React.useState(false);
   const interactions = adapter.interactions;
 
   React.useEffect(() => {
-    void fetchUser();
+    let cancelled = false;
+    fetchUser()
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setAuthChecked(true);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [fetchUser]);
 
   const canUpload = Boolean(user && adapter.allowUpload !== false && adapter.uploadTemplate);
@@ -334,6 +343,31 @@ function TemplateLibraryInner({ adapter }: Props) {
       setIsUploading(false);
     }
   };
+
+  if (!authChecked) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-400 border-t-transparent" />
+          <div className="text-sm text-white/50">验证登录状态...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <div className="text-lg text-white/60">使用模板库需要登录</div>
+        <a
+          href="/login"
+          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-indigo-500 transition-colors"
+        >
+          去登录
+        </a>
+      </div>
+    );
+  }
 
   const tabValues = (["default", "catalog", "my"] as const).filter((tab) => isTabEnabled(adapter, tab, Boolean(user)));
   const catalogTabLabel = adapter.labels?.catalogTab ?? "模板目录";
