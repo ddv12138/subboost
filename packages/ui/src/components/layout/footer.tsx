@@ -27,7 +27,7 @@ type FooterProps = {
   resourceLinks?: FooterLink[];
 };
 
-const sourceRepositoryUrl = "https://github.com/SubBoost/subboost";
+const sourceRepositoryUrl = "https://github.com/ddv12138/subboost";
 
 const defaultBrandLinks: FooterLink[] = [
   {
