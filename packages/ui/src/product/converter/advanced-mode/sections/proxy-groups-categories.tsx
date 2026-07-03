@@ -4,6 +4,7 @@ import * as React from "react";
 import { ChevronDown, ChevronRight, RotateCcw } from "lucide-react";
 import { Badge } from "@subboost/ui/components/ui/badge";
 import { confirmDialog } from "@subboost/ui/components/ui/confirm-dialog";
+import { Input } from "@subboost/ui/components/ui/input";
 import { Switch } from "@subboost/ui/components/ui/switch";
 import {
   DropdownMenu,
@@ -42,6 +43,7 @@ const CUSTOM_CATEGORY_ID = "custom";
 export function ProxyGroupsCategories() {
   const {
     ruleProviderBaseUrl,
+    setRuleProviderBaseUrl,
     nodes = [],
     testUrl,
     testInterval,
@@ -295,12 +297,11 @@ export function ProxyGroupsCategories() {
           <div className={PROXY_GROUP_SECTION_LABEL_ROW_CLASS}>
             <label className={PROXY_GROUP_SECTION_LABEL_CLASS}>规则集 URL</label>
           </div>
-          <div
-            className="min-w-0 rounded-md border border-white/10 bg-white/5 px-3 py-2 font-mono text-xs text-white/65"
-            title={ruleProviderBaseUrl}
-          >
-            <span className="block truncate">{ruleProviderBaseUrl}</span>
-          </div>
+          <Input
+            value={ruleProviderBaseUrl}
+            onChange={(e) => setRuleProviderBaseUrl(e.target.value)}
+            className="h-9 font-mono text-xs"
+          />
         </div>
         <div className="min-w-0 space-y-1">
           <div className={PROXY_GROUP_SECTION_LABEL_ROW_CLASS}>
