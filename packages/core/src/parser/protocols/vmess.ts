@@ -499,7 +499,7 @@ function buildNodeFromConfig(config: VMessConfig): VMessNode {
       ...(echValue
         ? isStandardBase64String(echValue)
           ? { config: echValue }
-          : { "query-server-name": echValue }
+          : { "query-server-name": echValue.split("+")[0] }
         : {}),
     } as Record<string, unknown>;
   }

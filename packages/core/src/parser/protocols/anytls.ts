@@ -227,7 +227,7 @@ export function parseAnyTLS(uri: string): AnyTLSNode {
       ...(echValue
         ? isStandardBase64String(echValue)
           ? { config: echValue }
-          : { "query-server-name": echValue }
+          : { "query-server-name": echValue.split("+")[0] }
         : {}),
     };
   }
