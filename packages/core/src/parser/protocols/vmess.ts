@@ -13,6 +13,7 @@
 import { decodeBase64 } from "../base64";
 import { tryParseJson } from "../../json";
 import type { VMessNode } from "@subboost/core/types/node";
+import { isStandardBase64String } from "@subboost/core/mihomo/proxy-sanitizer";
 import { splitWsPathEarlyData } from "../ws-early-data";
 import { parseUrlWithNeutralScheme, safeDecodeFormUrlEncoded, safeDecodeURIComponent } from "./url-decode";
 
@@ -495,7 +496,11 @@ function buildNodeFromConfig(config: VMessConfig): VMessNode {
     const echValue = pickString(configRecord.ech);
     node["ech-opts"] = {
       enable: true,
-      ...(echValue ? { config: echValue } : {}),
+      ...(echValue
+        ? isStandardBase64String(echValue)
+          ? { config: echValue }
+          : { "query-server-name": echValue }
+        : {}),
     } as Record<string, unknown>;
   }
 

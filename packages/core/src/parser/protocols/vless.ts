@@ -9,6 +9,7 @@
 import { decodeBase64 } from "../base64";
 import type { VLESSNode, XHttpDownloadSettings, XHttpOpts, XHttpReuseSettings } from "@subboost/core/types/node";
 import { normalizeRealityShortId } from "@subboost/core/mihomo/reality";
+import { isStandardBase64String } from "@subboost/core/mihomo/proxy-sanitizer";
 import { splitWsPathEarlyData } from "../ws-early-data";
 import { parseUrlWithNeutralScheme, safeDecodeFormUrlEncoded, safeDecodeURIComponent } from "./url-decode";
 import { parseJsonObject, parseJsonStringMap } from "../json-utils";
@@ -282,7 +283,11 @@ export function parseVLESS(uri: string): VLESSNode {
     const echValue = echRaw.trim();
     (node as unknown as Record<string, unknown>)["ech-opts"] = {
       enable: true,
-      ...(echValue ? { config: echValue } : {}),
+      ...(echValue
+        ? isStandardBase64String(echValue)
+          ? { config: echValue }
+          : { "query-server-name": echValue }
+        : {}),
     };
   }
 
