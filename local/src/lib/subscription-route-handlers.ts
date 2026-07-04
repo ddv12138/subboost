@@ -3,6 +3,7 @@ import { apiError, json, readJsonBody } from "@local/lib/http";
 import {
   createSubscription,
   deleteSubscription,
+  duplicateSubscription,
   getSubscription,
   listSubscriptions,
   refreshSubscription,
@@ -61,6 +62,14 @@ export async function deleteSubscriptionResponse(id: string) {
     const deleted = await deleteSubscription(admin.id, id);
     if (!deleted) return apiError("Subscription not found.", "NOT_FOUND", 404);
     return json({ success: true });
+  });
+}
+
+export async function duplicateSubscriptionResponse(id: string) {
+  return withCurrentAdmin(async (admin) => {
+    const subscription = await duplicateSubscription(admin.id, id);
+    if (!subscription) return apiError("Subscription not found.", "NOT_FOUND", 404);
+    return json({ subscription }, 201);
   });
 }
 

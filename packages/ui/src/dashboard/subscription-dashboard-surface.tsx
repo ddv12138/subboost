@@ -53,6 +53,7 @@ export type DashboardSurfaceAdapter = {
   editSubscriptionHref?: (subscription: Subscription) => string;
   fetchSubscriptions: () => Promise<Subscription[]>;
   deleteSubscription: (id: string) => Promise<void>;
+  duplicateSubscription?: (id: string) => Promise<Subscription>;
   refreshSubscription: (id: string) => Promise<RefreshSubscriptionResponse>;
   updateSubscriptionSettings: (id: string, payload: UpdateSettingsPayload) => Promise<void>;
   resolveDownloadUrl?: (subscription: Subscription) => string;
@@ -241,6 +242,18 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
     }
   };
 
+  const duplicateSubscription = async (id: string) => {
+    if (!adapter.duplicateSubscription) return;
+    try {
+      const newSub = await adapter.duplicateSubscription(id);
+      setSubscriptions((prev) => [newSub, ...prev]);
+      toast({ title: "复制成功" });
+    } catch (error) {
+      console.error("Failed to duplicate subscription:", error);
+      toast({ title: error instanceof Error ? error.message : "复制失败，请稍后重试", variant: "destructive" });
+    }
+  };
+
   const refreshSubscription = async (id: string) => {
     if (refreshingId) return;
     setRefreshingId(id);
@@ -401,6 +414,7 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
                   editHref={editSubscriptionHref(sub)}
                   onCopy={copyToClipboard}
                   onDelete={deleteSubscription}
+                  onDuplicate={duplicateSubscription}
                   onDownload={downloadSubscription}
                   onRefresh={refreshSubscription}
                   onSettings={openSubscriptionSettings}
@@ -493,6 +507,7 @@ function SubscriptionRow({
   editHref,
   onCopy,
   onDelete,
+  onDuplicate,
   onDownload,
   onRefresh,
   onSettings,
@@ -503,6 +518,7 @@ function SubscriptionRow({
   editHref: string;
   onCopy: (subscriptionUrl: string, id: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onDuplicate: (id: string) => Promise<void>;
   onDownload: (sub: Subscription) => Promise<void>;
   onRefresh: (id: string) => Promise<void>;
   onSettings: (sub: Subscription) => void;
@@ -588,6 +604,16 @@ function SubscriptionRow({
               <span className="hidden sm:inline">链接</span>
             </>
           )}
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => void onDuplicate(sub.id)}
+          className="gap-0 sm:gap-2"
+          title="复制该订阅（创建副本）"
+        >
+          <Copy className="h-4 w-4" />
+          <span className="hidden sm:inline">复制</span>
         </Button>
         <Button
           variant="ghost"
