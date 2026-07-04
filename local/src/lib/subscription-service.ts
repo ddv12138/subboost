@@ -259,6 +259,28 @@ export async function deleteSubscription(ownerId: string, id: string): Promise<b
   return true;
 }
 
+export async function duplicateSubscription(ownerId: string, id: string): Promise<SubscriptionSummary | null> {
+  const current = await prisma.subscription.findFirst({ where: { id, ownerId }, include: { autoUpdateState: true } });
+  if (!current) return null;
+
+  const secrets = readSubscriptionSecrets(current);
+  const name = `${current.name}（副本）`;
+
+  const row = await prisma.subscription.create({
+    data: {
+      ownerId,
+      name,
+      encryptedUrls: current.encryptedUrls,
+      encryptedNodes: current.encryptedNodes,
+      encryptedConfig: current.encryptedConfig,
+      encryptedSubscriptionInfo: current.encryptedSubscriptionInfo,
+      autoUpdateInterval: current.autoUpdateInterval,
+    },
+    include: { autoUpdateState: true },
+  });
+  return formatSubscription(row);
+}
+
 export function buildSubscriptionFetchCallbacks() {
   return {
     fetchUrlNodes: async (source: SavedSource) => {

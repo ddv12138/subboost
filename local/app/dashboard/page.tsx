@@ -18,6 +18,13 @@ function resolveLocalDashboardDownloadUrl(subscription: Subscription): string {
 }
 
 const localDashboardAdapter: DashboardSurfaceAdapter = {
+  duplicateSubscription: async (id) => {
+    const response = await fetch(`/api/subscriptions/${encodeURIComponent(id)}/duplicate`, {
+      method: "POST",
+    });
+    const data = await readJsonResponse<{ subscription: Subscription }>(response, "复制失败");
+    return data.subscription;
+  },
   loginHref: "/login",
   newSubscriptionHref: "/?newSubscription=1",
   templatesHref: "/templates",
