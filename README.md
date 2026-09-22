@@ -1,106 +1,91 @@
 <!-- markdownlint-disable MD033 MD041 -->
 <div align="center">
-  <p><img src="docs/assets/logo.png" alt="SubBoost" width="96"></p>
   <h1>SubBoost</h1>
+  <p>A personal, self-hosted Clash / Mihomo subscription manager and configuration generator.</p>
   <p>
     <img src="https://img.shields.io/badge/platform-Linux%20%2B%20Docker-lightgrey.svg" alt="Platform: Linux + Docker">
-    <img src="https://img.shields.io/badge/version-2.5.1-green.svg" alt="Version 2.5.1">
-    <a href="https://subboost.org"><img src="https://img.shields.io/badge/app-subboost.org-brightgreen.svg" alt="Online app"></a>
-    <a href="https://docs.subboost.org"><img src="https://img.shields.io/badge/docs-subboost.org-blue.svg" alt="Documentation"></a>
-    <img src="https://img.shields.io/badge/image-GHCR-blue.svg" alt="GHCR image">
+    <img src="https://img.shields.io/badge/mode-personal%20self--hosted-blue.svg" alt="Personal self-hosted">
   </p>
   <p><strong><a href="README.md">English</a> | <a href="README-CN.md">中文</a></strong></p>
 </div>
 <!-- markdownlint-enable MD033 MD041 -->
 
-**SubBoost** is a **Clash/Mihomo subscription conversion, enhancement, and management** tool. It can convert airport subscriptions and self-hosted nodes into optimized aggregate subscriptions, then update them automatically. With the visual UI, you can configure advanced features such as **chained proxies, precise routing, DNS leak prevention, and multi-subscription aggregation** in one click.
+## Purpose
 
-## 本 Fork 新增：节点测速与最优节点筛选
+This fork is a **single-administrator, personal-use** deployment. After signing in, you manage your own subscriptions and generated configurations directly. It does not provide a public online service, shared users, a template marketplace, or quota management.
 
-### 功能概述
+The interface intentionally uses a restrained light theme. The subscription list is the entry page, while the editor retains quick mode, advanced mode, and YAML / visual previews.
 
-对订阅中所有节点进行延迟测速（TCP 连接 / TLS 握手 / UDP 探测），按延迟升序排序，只保留前 N 个最优节点输出到订阅 YAML 中。测速失败的节点（超时/不可达）自动剔除。
+## Features
 
-### 前端交互
+- Import subscription URLs, YAML configurations, and node links; generate Clash / Mihomo subscriptions.
+- Manage subscriptions: edit, refresh, copy the subscription URL, clone, and delete.
+- Scheduled subscription refresh with optional smart node matching.
+- Advanced settings for node filtering, relay proxy groups, rules, DNS, and listener ports.
+- Node speed testing using TCP / TLS / UDP probes and latency-based output filtering.
+- Three built-in presets are retained; template management and sharing are intentionally omitted.
 
-- 高级模式新增「节点测速筛选」面板，位于节点导入与节点管理之间
-- 配置项：启用开关、最大输出节点数（默认 5）、测速超时（默认 1000ms）、并发数（默认 10）
-- 点击「开始测速」按钮触发测速，结果实时同步到右侧 YAML 预览
-- 测速后展示完整节点延迟排序列表，所有节点始终可见，标注已选 / 已剔除 / 不可达 / 未测速
-- 未登录用户不可使用配置界面，页面引导登录
+## Deployment
 
-### 服务端
+Docker, Docker Compose v2, and Docker Buildx are required. PostgreSQL is started by the included Compose stack.
 
-- 基于 Node.js 内置模块实现测速引擎：
-  - TCP 协议（SS / VMess / VLESS / Trojan / HTTP / SOCKS 等）→ TCP connect + TLS 握手
-  - UDP 协议（Hysteria / WireGuard / TUIC）→ `dgram` 发包测往返
-- 刷新订阅时自动测速（受 `speedTest.enabled` 控制）
-- 新增 `POST /api/speed-test` API，支持前端手动触发测速
-- 测速结果以 `_meta.latency` 形式与节点一同持久化
+```bash
+git clone https://github.com/ddv12138/subboost.git
+cd subboost/local
+```
 
-### 筛选逻辑
+Create `local/.env` with the following values. Use long random secrets and do not commit this file.
 
-YAML 生成时根据 `_meta.latency` 排序，剔除不可达节点，取前 `maxOutputNodes` 个。前置的代理组高级筛选（region / regex / sourceIds）不受影响，中转组和目标节点引用会自动清理。
+```dotenv
+POSTGRES_PASSWORD=change-this-to-a-long-random-password
+DATABASE_URL=postgresql://subboost:change-this-to-a-long-random-password@db:5432/subboost
+ENCRYPTION_KEY=replace-with-a-long-random-secret
+JWT_SECRET=replace-with-a-long-random-secret
+CRON_SECRET=replace-with-a-long-random-secret
 
-### 向后兼容
+# Optional; default is http://localhost:3000
+SUBBOOST_PORT=3000
+APP_URL=https://subboost.example.com
+```
 
-`speedTest` 字段可选，缺省时 `enabled: false`，跳过筛选。不改数据库 Schema，不迁移。
+Build and start the stack:
 
-## Highlights & Use Cases
+```bash
+COMPOSE_BAKE=true docker compose up -d --build
+```
 
-- **Subscription conversion**: Import subscription links, YAML files, node links, and other common formats.
-- **Node management**: Rename, delete, or configure listening ports for nodes in batches.
-- **Node filtering**: Build `filtered proxy groups` with only selected nodes by source, region, and custom rules.
-- **Chained proxies**: Configure chained proxies and `relay proxy groups` visually in one click.
-- **Precise routing**: Enable more than 30 common proxy groups and over 2,000 remote rule sets.
-- **Rule management**: Reorder rules for deeper customization by advanced users.
-- **DNS leak prevention**: The default `basic and DNS configuration` helps prevent DNS leaks.
-- **Automatic refresh**: Refresh subscriptions on a schedule and intelligently match nodes during refresh.
+Open `APP_URL` (or `http://server-address:SUBBOOST_PORT`) and complete local administrator setup when prompted.
 
-## Interface Preview
+Useful operations:
 
-<p align="center">
-  <img src="docs/assets/screenshot-main.png" alt="SubBoost visual configuration interface" width="960">
-</p>
+```bash
+# Inspect status and application logs
+docker compose ps
+docker compose logs -f app
 
-## Usage & Deployment
+# Update source and rebuild
+git pull
+COMPOSE_BAKE=true docker compose up -d --build
+```
 
-- Online entry: [No deployment required - direct access to the public service](https://subboost.org)
-- Deployment docs: [One-click deployment - pulls an image to build, faster with lower requirements](https://docs.subboost.org/deploy/one-click)
-- Deployment docs: [Advanced deployment - compiles from source, slower with higher requirements](https://docs.subboost.org/deploy/advanced)
-- Configuration guide: [Clash configuration simple enough for a paramecium: configure precise routing and chained proxies from the UI in one click](https://ryanvan.com/t/topic/59?u=ryan)
+The first build downloads base images and npm dependencies, so it naturally takes longer. Later builds reuse Docker's dependency layer as long as package manifests and the Dockerfile do not change.
 
-## Development Notes
-
-Developers can start a local development environment from source:
+## Development and verification
 
 ```bash
 npm ci
-npm run dev
-```
-
-Common checks:
-
-```bash
 npm run lint
-npm run test:unit
-npm run check:local-app
+npx vitest run
+npm --prefix local run typecheck
 ```
 
-## Links
+## Intentionally excluded
 
-- Online entry: [https://subboost.org](https://subboost.org)
-- Deployment docs: [https://docs.subboost.org](https://docs.subboost.org)
-- Release announcements: [docs/release-notes.md](./docs/release-notes.md)
-- Changelog: [https://subboost.org/faq](https://subboost.org/faq)
-- Community feedback: [LINUX DO](https://linux.do/) & [IDC Flare](https://idcflare.com/); thanks to everyone in the forums for the active discussion and feedback.
+- Public online hosting and multi-user sharing.
+- Template upload, template library, and template quotas.
+- YAML download actions; add the subscription URL to your client instead.
+- A separate account settings page; log out from the user menu directly.
 
-## License
+## License and disclaimer
 
-The public SubBoost source code is licensed under the [GNU Affero General Public License v3.0 only](./LICENSE).
-
-If you modify SubBoost and provide it to users over a network, AGPL-3.0 requires you to offer those users the corresponding source code. The public source entry is [SubBoost/subboost](https://github.com/SubBoost/subboost).
-
-## Disclaimer
-
-This project does not provide any proxy service and makes no guarantee about the availability or legality of third-party subscription content.
+The project is licensed under [GNU Affero General Public License v3.0 only](./LICENSE). It does not provide any proxy service and makes no guarantees about the availability or legality of third-party subscription content.
