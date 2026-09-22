@@ -490,7 +490,7 @@ export function SourcesSection() {
             <div className="space-y-3">
               <div className="grid gap-3 sm:grid-cols-3">
                 <div className="space-y-1">
-                  <div className="text-xs text-white/60">标签（tag）</div>
+                  <div className="text-xs text-neutral-600">标签（tag）</div>
                   <Input
                     value={expandedSource.tag ?? ""}
                     onChange={(e) => updateSourceMeta(expandedSource.id, { tag: e.target.value })}
@@ -499,7 +499,7 @@ export function SourcesSection() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <div className="text-xs text-white/60">节点命名模板</div>
+                  <div className="text-xs text-neutral-600">节点命名模板</div>
                   <Input
                     value={expandedSource.nameTemplate ?? DEFAULT_NODE_NAME_TEMPLATE}
                     onChange={(e) => updateSourceMeta(expandedSource.id, { nameTemplate: e.target.value })}
@@ -507,17 +507,17 @@ export function SourcesSection() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <div className="text-xs text-white/60">预览</div>
+                  <div className="text-xs text-neutral-600">预览</div>
                   <Input value={expandedSourcePreviewName} readOnly className="text-xs font-mono" />
                 </div>
               </div>
 
-              <div className="text-[11px] text-white/40">
+              <div className="text-[11px] text-neutral-500">
                 可用占位符：{"{tag}"}、{"{name}"}；留空则默认：{DEFAULT_NODE_NAME_TEMPLATE}
               </div>
 
               <div className="space-y-1">
-                <div className="text-xs text-white/60">{sourceTypeInfo[expandedSource.type].label}</div>
+                <div className="text-xs text-neutral-600">{sourceTypeInfo[expandedSource.type].label}</div>
                 {expandedSource.type === "url" ? (
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
@@ -528,13 +528,13 @@ export function SourcesSection() {
                         className="text-xs min-w-0 flex-1"
                       />
 
-                      <div className="flex h-10 flex-none items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3">
-                        <div className="text-xs text-white/70 whitespace-nowrap">proxy-providers模式</div>
+                    <div className="flex h-10 flex-none items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3">
+                        <div className="text-xs text-neutral-700 whitespace-nowrap">proxy-providers模式</div>
                         <Popover.Root>
                           <Popover.Trigger asChild>
                             <button
                               type="button"
-                              className="inline-flex h-6 w-6 flex-none items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/40 transition-colors hover:bg-white/10 hover:text-white/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                              className="inline-flex h-6 w-6 flex-none items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                               aria-label="proxy-providers 模式说明"
                               title="proxy-providers 模式说明"
                             >
@@ -585,7 +585,7 @@ export function SourcesSection() {
 
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div className="space-y-1">
-                        <div className="text-xs text-white/60">流量/到期信息 URL（可选）</div>
+                        <div className="text-xs text-neutral-600">流量/到期信息 URL（可选）</div>
                         <Input
                           value={expandedSource.userinfoUrl ?? ""}
                           onChange={(e) => updateSourceMeta(expandedSource.id, { userinfoUrl: e.target.value })}
@@ -594,7 +594,7 @@ export function SourcesSection() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <div className="text-xs text-white/60">流量信息 User-Agent（可选）</div>
+                        <div className="text-xs text-neutral-600">流量信息 User-Agent（可选）</div>
                         <Input
                           value={expandedSource.userinfoUserAgent ?? ""}
                           onChange={(e) =>
@@ -606,7 +606,7 @@ export function SourcesSection() {
                       </div>
                     </div>
 
-                    <div className="text-[11px] text-white/40">
+                    <div className="text-[11px] text-neutral-500">
                       有些订阅源不会直接返回 <span className="font-mono">subscription-userinfo</span>，但会提供独立的流量接口。
                       设置后，SubBoost 会在导入/刷新时额外抓取该接口，用来更新这个源自己的流量与到期快照。
                     </div>
@@ -616,7 +616,7 @@ export function SourcesSection() {
                     value={expandedSource.content}
                     onChange={(e) => updateSource(expandedSource.id, e.target.value)}
                     placeholder={sourceTypeInfo[expandedSource.type].placeholder}
-                    className="min-h-[60vh] text-xs font-mono"
+                    className="min-h-72 max-h-[50vh] resize-y text-xs font-mono"
                   />
                 )}
               </div>

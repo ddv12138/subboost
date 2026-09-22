@@ -64,8 +64,8 @@ function ErrorDetailDialog({ error, children }: ErrorDetailDialogProps) {
         </DialogHeader>
 
         <div className="space-y-4 text-sm">
-          <div className="flex items-center gap-4 text-xs text-white/50">
-            <span className="px-2 py-0.5 rounded bg-red-500/10 text-red-300 border border-red-500/20">
+          <div className="flex items-center gap-4 text-xs text-neutral-500">
+            <span className="px-2 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">
               {categoryLabel}
             </span>
             <span className="flex items-center gap-1">
@@ -76,11 +76,11 @@ function ErrorDetailDialog({ error, children }: ErrorDetailDialogProps) {
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-white/50 text-xs">{error.isUserFacingReason ? "提示内容" : "错误信息"}</span>
+              <span className="text-neutral-600 text-xs">{error.isUserFacingReason ? "提示内容" : "错误信息"}</span>
               <button
                 type="button"
                 onClick={() => copyText(message)}
-                className="text-xs text-white/40 hover:text-white flex items-center gap-1 transition-colors"
+                className="text-xs text-neutral-500 hover:text-neutral-950 flex items-center gap-1 transition-colors"
               >
                 <Copy className="h-3 w-3" />
                 复制
@@ -90,8 +90,8 @@ function ErrorDetailDialog({ error, children }: ErrorDetailDialogProps) {
               className={cn(
                 "rounded-lg p-3 text-xs whitespace-pre-wrap break-all",
                 error.isUserFacingReason
-                  ? "bg-amber-500/10 border border-amber-400/30 text-amber-100"
-                  : "bg-black/30 border border-white/5 text-white/80 font-mono"
+                  ? "bg-amber-50 border border-amber-200 text-amber-800"
+                  : "bg-neutral-50 border border-neutral-200 text-neutral-800 font-mono"
               )}
             >
               {message}
@@ -101,17 +101,17 @@ function ErrorDetailDialog({ error, children }: ErrorDetailDialogProps) {
           {showTechnicalDetail && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-white/50 text-xs">技术细节</span>
+                <span className="text-neutral-600 text-xs">技术细节</span>
                 <button
                   type="button"
                   onClick={() => copyText(technicalDetail!, "已复制技术细节")}
-                  className="text-xs text-white/40 hover:text-white flex items-center gap-1 transition-colors"
+                  className="text-xs text-neutral-500 hover:text-neutral-950 flex items-center gap-1 transition-colors"
                 >
                   <Copy className="h-3 w-3" />
                   复制
                 </button>
               </div>
-              <div className="bg-black/30 border border-white/5 rounded-lg p-3 text-white/80 text-xs font-mono whitespace-pre-wrap break-all max-h-32 overflow-y-auto custom-scrollbar">
+              <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-3 text-neutral-800 text-xs font-mono whitespace-pre-wrap break-all max-h-32 overflow-y-auto custom-scrollbar">
                 {technicalDetail}
               </div>
             </div>
@@ -119,15 +119,15 @@ function ErrorDetailDialog({ error, children }: ErrorDetailDialogProps) {
 
           {error.suggestedActions.length > 0 && (
             <div className="space-y-2">
-              <span className="text-white/50 text-xs">建议操作</span>
+              <span className="text-neutral-600 text-xs">建议操作</span>
               <div className="space-y-1.5">
                 {error.suggestedActions.map((action, i) => (
                   <div
                     key={i}
-                    className="flex items-start gap-2 p-2 rounded-lg bg-white/5 border border-white/5"
+                    className="flex items-start gap-2 p-2 rounded-lg bg-neutral-50 border border-neutral-200"
                   >
-                    <ChevronRight className="h-3.5 w-3.5 text-white/30 mt-0.5 flex-shrink-0" />
-                    <span className="text-xs text-white/70">{action}</span>
+                    <ChevronRight className="h-3.5 w-3.5 text-neutral-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-xs text-neutral-700">{action}</span>
                   </div>
                 ))}
               </div>

@@ -449,7 +449,7 @@ describe("quick mode SourcesSection", () => {
     renderSection({ 1: "s2" });
 
     const expandedTextarea = mocks.captures.textareas.find((props: any) =>
-      String(props.className).includes("min-h-[60vh]")
+      String(props.className).includes("min-h-72")
     );
     expect(expandedTextarea).toMatchObject({ value: "ss://node" });
 
