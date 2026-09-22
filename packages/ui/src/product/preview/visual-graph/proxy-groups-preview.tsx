@@ -98,30 +98,10 @@ function getStrategyLabel(strategy: string | undefined) {
 }
 
 function getGroupColor(category: string) {
-  switch (category) {
-    case "core":
-      return "border-blue-500/50 bg-blue-500/10";
-    case "service":
-      return "border-green-500/50 bg-green-500/10";
-    case "social":
-      return "border-purple-500/50 bg-purple-500/10";
-    case "media":
-      return "border-pink-500/50 bg-pink-500/10";
-    case "game":
-      return "border-orange-500/50 bg-orange-500/10";
-    case "tech":
-      return "border-cyan-500/50 bg-cyan-500/10";
-    case "finance":
-      return "border-yellow-500/50 bg-yellow-500/10";
-    case "other":
-      return "border-slate-500/50 bg-slate-500/10";
-    case "custom":
-      return "border-indigo-500/50 bg-indigo-500/10";
-    case "dialer":
-      return "border-amber-500/50 bg-amber-500/10";
-    default:
-      return "border-white/20 bg-white/5";
-  }
+  // A category palette is useful in a shared dashboard, but visual noise in
+  // the local single-user mode. Neutral cards also avoid coloured edge lines.
+  void category;
+  return "border-neutral-200 bg-white";
 }
 
 export function ProxyGroupsPreview({

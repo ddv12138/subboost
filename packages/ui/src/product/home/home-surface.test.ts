@@ -200,11 +200,6 @@ describe("HomeSurface", () => {
     expect(html).toContain("proxies: []");
     expect(mocks.captures.productApiAdapter).toBe(productApi);
     expect(mocks.captures.interactions).toBe(interactions);
-    expect(mocks.captures.homeActions).toMatchObject({
-      generatedYaml: "proxies: []",
-      appliedTemplateId: "builtin:minimal",
-      storeSources: [{ id: "s1", type: "url", content: "https://example.com/sub" }],
-    });
     expect(mocks.captures.cleanIntent).toMatchObject({
       authChecked: true,
       setCopied: mocks.setCopied,
@@ -218,9 +213,6 @@ describe("HomeSurface", () => {
     expect(mocks.captures.homeLayout).toMatchObject({
       showAiColumn: true,
       editSubscriptionId: "sub-1",
-      hasValidSources: true,
-      handleGenerate: mocks.handleGenerate,
-      handleDownload: mocks.handleDownload,
       templateUploadHref: "/templates/upload",
       onTemplateUploadOpen: adapter.onTemplateUploadOpen,
     });

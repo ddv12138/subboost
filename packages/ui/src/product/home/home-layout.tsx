@@ -3,7 +3,6 @@
 import * as React from "react";
 import Link from "next/link";
 import {
-  Download,
   AlertTriangle,
   ExternalLink,
   Eye,
@@ -17,7 +16,6 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@subboost/
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@subboost/ui/components/ui/tabs";
 import { QuickMode } from "@subboost/ui/product/converter/quick-mode";
 import { AdvancedMode } from "@subboost/ui/product/converter/advanced-mode";
-import { UnsavedPrompt } from "@subboost/ui/product/home/unsaved-prompt";
 import { VisualGraph } from "@subboost/ui/product/preview/visual-graph";
 import { YamlHighlight } from "@subboost/ui/product/preview/diff-highlight";
 import { SubscriptionLinkDialog } from "@subboost/ui/product/home/subscription-link-dialog";
@@ -70,12 +68,6 @@ type Props = {
 
   generatedYaml: string;
   generatedYamlError: string | null;
-  configLoading: boolean;
-  hasValidSources: boolean;
-
-  handleGenerate: (mode: ProductMode) => void;
-  handleDownload: (mode: ProductMode) => void;
-
   subscription: SubscriptionLinkState;
   noticeSlot?: React.ReactNode;
   renderAnnouncement?: (context: {
@@ -100,10 +92,6 @@ export function HomeLayout({
   editSubscriptionId,
   generatedYaml,
   generatedYamlError,
-  configLoading,
-  hasValidSources,
-  handleGenerate,
-  handleDownload,
   subscription,
   noticeSlot,
   renderAnnouncement,
@@ -197,19 +185,6 @@ export function HomeLayout({
                 </TabsContent>
               </CardContent>
               <CardFooter className="justify-center gap-2 flex-shrink-0 pt-3 flex-row flex-wrap">
-                <Button className="h-10" onClick={() => handleGenerate(configTab)} disabled={configLoading || !hasValidSources}>
-                  {configLoading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      处理中...
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="h-4 w-4 mr-2" />
-                      生成配置
-                    </>
-                  )}
-                </Button>
                 {user && templateUploadHref && (
                   <Link href={templateUploadHref}>
                     <Button
@@ -257,7 +232,7 @@ export function HomeLayout({
               </CardHeader>
               <CardContent className={`pt-0 relative lg:flex-1 lg:overflow-hidden ${DESKTOP_PANEL_CONTENT_MIN_HEIGHT_CLASS}`}>
                 <TabsContent value="yaml" className="mt-0 data-[state=inactive]:hidden lg:absolute lg:inset-0">
-                  <div className="h-[clamp(420px,70vh,820px)] lg:h-full rounded-xl bg-white/5 border border-white/10 overflow-auto custom-scrollbar">
+                  <div className="h-[clamp(420px,70vh,820px)] lg:h-full rounded-xl border border-slate-200 bg-white overflow-auto custom-scrollbar">
                     {generatedYamlError ? (
                       <div className="h-full p-4 text-sm text-rose-200">
                         <div className="flex items-start gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3">
@@ -304,14 +279,6 @@ export function HomeLayout({
               <CardFooter className="justify-center gap-2 flex-shrink-0 pt-3 flex-row flex-wrap">
                 <Button
                   className="h-10"
-                  disabled={!generatedYaml || Boolean(generatedYamlError)}
-                  onClick={() => handleDownload(configTab)}
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  下载配置
-                </Button>
-                <Button
-                  className="h-10"
                   variant="outline"
                   disabled={!generatedYaml || Boolean(generatedYamlError) || !authChecked}
                   onClick={() => subscription.handleGenerateSubscription(configTab)}
@@ -323,7 +290,12 @@ export function HomeLayout({
                   <Button
                     className="h-10 border-rose-500/50 text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 hover:border-rose-400/70"
                     variant="outline"
-                    onClick={() => (window.location.href = "/")}
+                    onClick={() => {
+                      if (typeof window !== "undefined") {
+                        (window as typeof window & { __skipUnsavedChangesPrompt?: boolean }).__skipUnsavedChangesPrompt = true;
+                        window.location.href = "/";
+                      }
+                    }}
                     title="退出编辑模式"
                   >
                     退出编辑
@@ -348,9 +320,6 @@ export function HomeLayout({
           </div>
         )}
       </div>
-
-      {/* 未保存提醒 */}
-      <UnsavedPrompt />
 
       {saveRequirementSlot}
 

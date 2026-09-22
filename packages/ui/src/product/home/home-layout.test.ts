@@ -206,8 +206,6 @@ describe("HomeLayout", () => {
     expect(html).toContain("save-requirement-slot");
     expect(html).toContain("subscription-dialog");
     expect(mocks.buttons[0]).toMatchObject({ disabled: true });
-    expect(mocks.buttons[1]).toMatchObject({ disabled: true });
-    expect(mocks.buttons[2]).toMatchObject({ disabled: true });
     expect(mocks.subscriptionDialog).toMatchObject({
       open: false,
       subscriptionName: "Primary",
@@ -222,8 +220,6 @@ describe("HomeLayout", () => {
   });
 
   it("wires advanced edit actions, upload tracking, and YAML preview", () => {
-    const handleGenerate = vi.fn();
-    const handleDownload = vi.fn();
     const onTemplateUploadOpen = vi.fn();
     const subscription = createSubscription({
       subscriptionDialog: true,
@@ -248,10 +244,6 @@ describe("HomeLayout", () => {
         editSubscriptionId: "sub-1",
         generatedYaml: "mixed-port: 7890",
         generatedYamlError: null,
-        configLoading: true,
-        hasValidSources: true,
-        handleGenerate,
-        handleDownload,
         subscription,
         onTemplateUploadOpen,
         templateUploadHref: "/templates?upload=1",
@@ -265,13 +257,9 @@ describe("HomeLayout", () => {
 
     mocks.buttons[0].onClick();
     mocks.buttons[1].onClick();
-    mocks.buttons[2].onClick();
-    mocks.buttons[3].onClick();
 
-    expect(handleGenerate).toHaveBeenCalledWith("advanced");
     expect(onTemplateUploadOpen).toHaveBeenCalled();
     expect(mocks.interactions.templateUploadOpened).toHaveBeenCalledWith({ entry: "home" });
-    expect(handleDownload).toHaveBeenCalledWith("advanced");
     expect(subscription.handleGenerateSubscription).toHaveBeenCalledWith("advanced");
     expect(mocks.subscriptionDialog).toMatchObject({
       open: true,

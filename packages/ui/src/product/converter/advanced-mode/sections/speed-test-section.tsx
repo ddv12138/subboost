@@ -11,6 +11,37 @@ import { SectionHeader } from "../section-header";
 
 type SpeedTestStatus = "idle" | "running" | "done";
 
+function FreeNumberInput({ value, onCommit, className }: { value: number; onCommit: (value: number) => void; className: string }) {
+  const [draft, setDraft] = React.useState(String(value));
+
+  React.useEffect(() => {
+    setDraft(String(value));
+  }, [value]);
+
+  const commit = () => {
+    const next = Number(draft);
+    if (Number.isInteger(next) && next > 0) onCommit(next);
+  };
+
+  return (
+    <Input
+      type="text"
+      inputMode="numeric"
+      pattern="[0-9]*"
+      value={draft}
+      onChange={(event) => {
+        const next = event.target.value;
+        if (/^\d*$/.test(next)) setDraft(next);
+      }}
+      onBlur={commit}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") event.currentTarget.blur();
+      }}
+      className={className}
+    />
+  );
+}
+
 function getNodeLatency(node: unknown): number | null | undefined {
   const meta = (node as Record<string, unknown>)._meta as { latency?: number } | undefined;
   if (!meta) return undefined;
@@ -159,43 +190,25 @@ export function SpeedTestSection({
           <div className="flex items-center gap-3">
             <div>
               <label className="block text-xs text-white/60 mb-1">最大输出节点数</label>
-              <Input
-                type="number"
-                min={1}
-                max={200}
+              <FreeNumberInput
                 value={speedTest.maxOutputNodes}
-                onChange={(e) => {
-                  const v = parseInt(e.target.value, 10);
-                  if (!isNaN(v) && v >= 1) setSpeedTest({ maxOutputNodes: v });
-                }}
+                onCommit={(maxOutputNodes) => setSpeedTest({ maxOutputNodes })}
                 className="text-xs h-8 w-20"
               />
             </div>
             <div>
               <label className="block text-xs text-white/60 mb-1">超时 (ms)</label>
-              <Input
-                type="number"
-                min={100}
-                max={30000}
+              <FreeNumberInput
                 value={speedTest.timeout}
-                onChange={(e) => {
-                  const v = parseInt(e.target.value, 10);
-                  if (!isNaN(v) && v >= 100) setSpeedTest({ timeout: v });
-                }}
+                onCommit={(timeout) => setSpeedTest({ timeout })}
                 className="text-xs h-8 w-20"
               />
             </div>
             <div>
               <label className="block text-xs text-white/60 mb-1">并发</label>
-              <Input
-                type="number"
-                min={1}
-                max={100}
+              <FreeNumberInput
                 value={speedTest.concurrency}
-                onChange={(e) => {
-                  const v = parseInt(e.target.value, 10);
-                  if (!isNaN(v) && v >= 1) setSpeedTest({ concurrency: v });
-                }}
+                onCommit={(concurrency) => setSpeedTest({ concurrency })}
                 className="text-xs h-8 w-16"
               />
             </div>

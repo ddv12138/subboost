@@ -2,24 +2,24 @@ import type { ComponentPropsWithoutRef } from "react";
 import { cn } from "@subboost/ui/lib/utils";
 
 const PROTOCOL_BADGE_COLORS: Record<string, string> = {
-  ss: "bg-blue-500/20 text-blue-200 border-blue-500/20",
-  ssr: "bg-blue-500/20 text-blue-200 border-blue-500/20",
-  vmess: "bg-purple-500/20 text-purple-200 border-purple-500/20",
-  vless: "bg-emerald-500/20 text-emerald-200 border-emerald-500/20",
-  trojan: "bg-red-500/20 text-red-200 border-red-500/20",
-  anytls: "bg-teal-500/20 text-teal-200 border-teal-500/20",
-  hysteria2: "bg-orange-500/20 text-orange-200 border-orange-500/20",
-  hy2: "bg-orange-500/20 text-orange-200 border-orange-500/20",
-  tuic: "bg-cyan-500/20 text-cyan-200 border-cyan-500/20",
-  socks5: "bg-slate-500/20 text-slate-200 border-slate-500/20",
-  socks4: "bg-slate-500/20 text-slate-200 border-slate-500/20",
-  http: "bg-amber-500/20 text-amber-200 border-amber-500/20",
-  https: "bg-amber-500/20 text-amber-200 border-amber-500/20",
-  ssh: "bg-pink-500/20 text-pink-200 border-pink-500/20",
-  relay: "bg-violet-500/20 text-violet-200 border-violet-500/20",
+  ss: "border-blue-200 bg-blue-50 text-blue-700",
+  ssr: "border-blue-200 bg-blue-50 text-blue-700",
+  vmess: "border-violet-200 bg-violet-50 text-violet-700",
+  vless: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  trojan: "border-red-200 bg-red-50 text-red-700",
+  anytls: "border-teal-200 bg-teal-50 text-teal-700",
+  hysteria2: "border-orange-200 bg-orange-50 text-orange-700",
+  hy2: "border-orange-200 bg-orange-50 text-orange-700",
+  tuic: "border-cyan-200 bg-cyan-50 text-cyan-700",
+  socks5: "border-slate-200 bg-slate-50 text-slate-700",
+  socks4: "border-slate-200 bg-slate-50 text-slate-700",
+  http: "border-amber-200 bg-amber-50 text-amber-700",
+  https: "border-amber-200 bg-amber-50 text-amber-700",
+  ssh: "border-pink-200 bg-pink-50 text-pink-700",
+  relay: "border-violet-200 bg-violet-50 text-violet-700",
 };
 
-const DEFAULT_PROTOCOL_BADGE_CLASS = "bg-slate-500/20 text-slate-200 border-slate-500/20";
+const DEFAULT_PROTOCOL_BADGE_CLASS = "border-slate-200 bg-slate-50 text-slate-700";
 
 export function getProtocolBadgeClass(type: string | undefined): string {
   const key = (type ?? "").trim().toLowerCase();

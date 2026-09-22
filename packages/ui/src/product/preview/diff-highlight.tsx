@@ -314,16 +314,16 @@ export function YamlHighlight({ content, className }: { content: string; classNa
       )}
 
       {renderMode === "plain" ? (
-        <pre className="px-3 py-2 text-xs font-mono whitespace-pre text-slate-200">{content}</pre>
+        <pre className="px-3 py-2 text-xs font-mono whitespace-pre text-slate-700">{content}</pre>
       ) : (
         <pre className="text-xs font-mono">
           {highlightedLines.map(({ number, html }) => (
-            <div key={number} className="flex hover:bg-white/5">
-              <span className="w-10 px-2 py-0.5 text-right text-white/50 select-none border-r border-white/10 flex-shrink-0">
+            <div key={number} className="flex hover:bg-slate-50">
+              <span className="w-10 border-r border-slate-200 px-2 py-0.5 text-right text-slate-400 select-none flex-shrink-0">
                 {number}
               </span>
               <span
-                className="flex-1 px-3 py-0.5 whitespace-pre text-slate-200"
+                className="flex-1 px-3 py-0.5 whitespace-pre text-slate-700"
                 dangerouslySetInnerHTML={{ __html: html }}
               />
             </div>
@@ -340,7 +340,7 @@ export function YamlHighlight({ content, className }: { content: string; classNa
 function highlightYamlLine(line: string): string {
   // 注释
   if (line.trim().startsWith("#")) {
-    return `<span class="text-white/50">${escapeHtml(line)}</span>`;
+    return `<span class="text-slate-400">${escapeHtml(line)}</span>`;
   }
 
   // 空行
@@ -354,7 +354,7 @@ function highlightYamlLine(line: string): string {
     const [, indent, dash, space, value] = arrayMatch;
     const trimmedValue = value.trim();
     const highlightedValue = highlightYamlValue(trimmedValue);
-    return `${escapeHtml(indent)}<span class="text-yellow-400">${dash}</span>${escapeHtml(space)}${highlightedValue}`;
+    return `${escapeHtml(indent)}<span class="text-amber-600">${dash}</span>${escapeHtml(space)}${highlightedValue}`;
   }
 
   // 键值对
@@ -362,7 +362,7 @@ function highlightYamlLine(line: string): string {
   if (keyMatch) {
     const [, indent, key, colon, value] = keyMatch;
     const highlightedValue = highlightYamlValue(value.trim());
-    return `${escapeHtml(indent)}<span class="text-cyan-400">${escapeHtml(key)}</span><span class="text-white">${colon}</span> ${highlightedValue}`;
+    return `${escapeHtml(indent)}<span class="text-sky-700">${escapeHtml(key)}</span><span class="text-slate-700">${colon}</span> ${highlightedValue}`;
   }
 
   return escapeHtml(line);
@@ -386,36 +386,36 @@ function highlightYamlValue(value: string): string {
 
   // 字符串（带引号）
   if (/^".*"$/.test(value)) {
-    return `<span class="text-green-400">${escapeHtml(value)}</span>`;
+    return `<span class="text-emerald-700">${escapeHtml(value)}</span>`;
   }
 
   // 数字
   if (/^-?\d+(\.\d+)?$/.test(value)) {
-    return `<span class="text-orange-400">${escapeHtml(value)}</span>`;
+    return `<span class="text-amber-700">${escapeHtml(value)}</span>`;
   }
 
   // 布尔值
   if (/^(true|false)$/i.test(value)) {
-    const color = value.toLowerCase() === "true" ? "text-emerald-400" : "text-rose-400";
+    const color = value.toLowerCase() === "true" ? "text-emerald-700" : "text-rose-700";
     return `<span class="${color}">${escapeHtml(value)}</span>`;
   }
 
   // null
   if (/^(null|~)$/i.test(value)) {
-    return `<span class="text-red-400">${escapeHtml(value)}</span>`;
+    return `<span class="text-red-700">${escapeHtml(value)}</span>`;
   }
 
   // 协议类型关键词
   if (/^(ss|ssr|vmess|vless|trojan|anytls|hysteria2|hy2|socks5|socks4|http|https|relay)$/.test(value)) {
-    return `<span class="text-pink-400 font-medium">${escapeHtml(value)}</span>`;
+    return `<span class="text-fuchsia-700 font-medium">${escapeHtml(value)}</span>`;
   }
 
   // 特殊值关键词
   if (/^(auto|chrome|firefox|safari|edge|qq|random|tcp|ws|grpc|h2|quic)$/.test(value)) {
-    return `<span class="text-sky-400">${escapeHtml(value)}</span>`;
+    return `<span class="text-sky-700">${escapeHtml(value)}</span>`;
   }
 
-  return `<span class="text-slate-200">${escapeHtml(value)}</span>`;
+  return `<span class="text-slate-700">${escapeHtml(value)}</span>`;
 }
 
 /**
@@ -462,21 +462,21 @@ function highlightInlineObject(obj: string): string {
     const key = part.slice(0, colonIdx).trim();
     const val = part.slice(colonIdx + 1).trim();
 
-    let keyColor = "text-cyan-400";
+    let keyColor = "text-sky-700";
     if (["name", "type", "server", "port"].includes(key)) {
-      keyColor = "text-amber-400 font-medium";
+      keyColor = "text-amber-700 font-medium";
     } else if (["password", "uuid", "cipher"].includes(key)) {
-      keyColor = "text-violet-400";
+      keyColor = "text-violet-700";
     } else if (["tls", "sni", "servername", "skip-cert-verify", "client-fingerprint"].includes(key)) {
-      keyColor = "text-teal-400";
+      keyColor = "text-teal-700";
     } else if (key === "dialer-proxy") {
-      keyColor = "text-rose-400 font-medium";
+      keyColor = "text-rose-700 font-medium";
     }
 
-    return `<span class="${keyColor}">${escapeHtml(key)}</span><span class="text-white/60">:</span> ${highlightYamlValue(val)}`;
+    return `<span class="${keyColor}">${escapeHtml(key)}</span><span class="text-slate-500">:</span> ${highlightYamlValue(val)}`;
   });
 
-  return `<span class="text-white/40">{</span>${highlighted.join(`<span class="text-white/40">,</span> `)}<span class="text-white/40">}</span>`;
+  return `<span class="text-slate-400">{</span>${highlighted.join(`<span class="text-slate-400">,</span> `)}<span class="text-slate-400">}</span>`;
 }
 
 /**
@@ -517,7 +517,7 @@ function highlightInlineArray(arr: string): string {
   if (current.trim()) parts.push(current.trim());
 
   const highlighted = parts.map((part) => highlightYamlValue(part));
-  return `<span class="text-white/40">[</span>${highlighted.join(`<span class="text-white/40">,</span> `)}<span class="text-white/40">]</span>`;
+  return `<span class="text-slate-400">[</span>${highlighted.join(`<span class="text-slate-400">,</span> `)}<span class="text-slate-400">]</span>`;
 }
 
 /**

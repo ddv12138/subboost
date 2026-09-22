@@ -101,16 +101,15 @@ describe("YamlHighlight", () => {
     });
 
     const html = collectHtml(rendered).join("\n");
-    expect(html).toContain("text-white/50");
-    expect(html).toContain("text-green-400");
-    expect(html).toContain("text-orange-400");
-    expect(html).toContain("text-emerald-400");
-    expect(html).toContain("text-red-400");
-    expect(html).toContain("text-pink-400");
-    expect(html).toContain("text-sky-400");
+    expect(html).toContain("text-slate-400");
+    expect(html).toContain("text-emerald-700");
+    expect(html).toContain("text-amber-700");
+    expect(html).toContain("text-red-700");
+    expect(html).toContain("text-fuchsia-700");
+    expect(html).toContain("text-sky-700");
     expect(html).toContain("&lt;tag&gt;&amp;&quot;&#039;");
-    expect(html).toContain("text-amber-400 font-medium");
-    expect(html).toContain("text-rose-400 font-medium");
+    expect(html).toContain("text-amber-700 font-medium");
+    expect(html).toContain("text-rose-700 font-medium");
   });
 
   it("switches very large YAML content to plain mode", () => {
@@ -133,6 +132,6 @@ describe("YamlHighlight", () => {
 
     const text = collectText(rendered);
     expect(text).toContain("恢复纯文本");
-    expect(collectHtml(rendered).join("\n")).toContain("text-cyan-400");
+    expect(collectHtml(rendered).join("\n")).toContain("text-sky-700");
   });
 });

@@ -22,7 +22,15 @@ export type AccountMenuItem = {
   label: string;
 };
 
-export function UserMenu({ privilegedMenuItem, minimal = false }: { privilegedMenuItem?: AccountMenuItem; minimal?: boolean }) {
+export function UserMenu({
+  privilegedMenuItem,
+  minimal = false,
+  hideAvatar = false,
+}: {
+  privilegedMenuItem?: AccountMenuItem;
+  minimal?: boolean;
+  hideAvatar?: boolean;
+}) {
   const { user, isLoading: userLoading, fetchUser, logout: userLogout } = useUserStore();
   const [isOpen, setIsOpen] = React.useState(false);
   const menuRef = React.useRef<HTMLDivElement>(null);
@@ -74,7 +82,7 @@ export function UserMenu({ privilegedMenuItem, minimal = false }: { privilegedMe
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 rounded-md px-2 py-1.5 text-neutral-800 hover:bg-neutral-100 transition-colors"
       >
-        <SafeImage
+        {!hideAvatar && <SafeImage
           src={user.avatarUrl}
           alt={user.name || user.username}
           className="h-8 w-8 rounded-full border border-neutral-200"
@@ -83,7 +91,7 @@ export function UserMenu({ privilegedMenuItem, minimal = false }: { privilegedMe
               <UserIcon className="h-4 w-4 text-white" />
             </div>
           }
-        />
+        />}
         <span className="text-sm font-medium hidden sm:block">{user.name || user.username}</span>
         <ChevronDown className={`h-4 w-4 text-neutral-500 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
@@ -146,14 +154,6 @@ export function UserMenu({ privilegedMenuItem, minimal = false }: { privilegedMe
                 <LayoutDashboard className="h-4 w-4" />
                 我的订阅
               </Link>}
-              <Link
-                href="/dashboard/settings"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950 transition-colors"
-              >
-                <Settings className="h-4 w-4" />
-                账户设置
-              </Link>
             </div>
 
             {/* Logout */}

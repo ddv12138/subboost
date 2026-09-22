@@ -55,7 +55,7 @@ describe("additional basic UI components", () => {
   });
 
   it("computes protocol and artistic nav classes", () => {
-    expect(getProtocolBadgeClass(" vmess ")).toContain("purple");
+    expect(getProtocolBadgeClass(" vmess ")).toContain("violet");
     expect(getProtocolBadgeClass("unknown")).toContain("slate");
     expect(getArtisticNavButtonClassName({ active: true, size: "md", className: "extra" })).toContain("extra");
     expect(getArtisticNavButtonClassName({ active: true, size: "md" })).toContain("text-white");

@@ -175,7 +175,7 @@ describe("UserMenu", () => {
     expect(html).toContain("2/5 订阅");
     expect(html).toContain("Privileged");
     expect(html).toContain("我的订阅");
-    expect(html).toContain("账户设置");
+    expect(html).not.toContain("账户设置");
     expect(html).toContain("退出登录");
   });
 

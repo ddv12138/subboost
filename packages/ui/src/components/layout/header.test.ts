@@ -132,10 +132,11 @@ describe("Header", () => {
 
     expect(html).not.toContain("self-host");
     expect(html).not.toContain("自部署入口");
-    expect(html).toContain("我的订阅");
+    expect(html).not.toContain("我的订阅");
     expect(html).not.toContain("FAQ");
     expect(html).not.toContain("管理");
     expect(mocks.links.some((link) => link.href === adminPath)).toBe(false);
+    expect(mocks.userMenuProps[0]).toEqual({ privilegedMenuItem: expect.anything(), minimal: true, hideAvatar: true });
   });
 
   it("renders a linked new release badge outside the home link in the default header", () => {

@@ -95,7 +95,7 @@ describe("shared layout components", () => {
 
     expect(html).not.toContain("self-host");
     expect(html).not.toContain("自部署入口");
-    expect(html).toContain("我的订阅");
+    expect(html).not.toContain("我的订阅");
     expect(html).not.toContain("FAQ");
     expect(html).toContain("UserMenu:Privileged");
   });

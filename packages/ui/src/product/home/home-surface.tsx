@@ -7,7 +7,6 @@ import { consumeAuthConfigHandoff } from "@subboost/ui/store/config-store/auth-h
 import { useUserStore, type User } from "@subboost/ui/store/user-store";
 import { useUIStore } from "@subboost/ui/store/ui-store";
 import { HomeLayout } from "@subboost/ui/product/home/home-layout";
-import { useHomeActions } from "@subboost/ui/product/home/use-home-actions";
 import { useCleanNewSubscriptionIntent } from "@subboost/ui/product/home/use-clean-new-subscription-intent";
 import { useEditingSubscriptionLoader } from "@subboost/ui/product/home/use-editing-subscription-loader";
 import { useSubscriptionLink, type HomeSubscriptionAdapter } from "@subboost/ui/product/home/use-subscription-link";
@@ -185,18 +184,6 @@ function HomeSurfaceInner({ adapter }: Props) {
     setSubscriptionUrl,
   });
 
-  const { handleDownload, handleGenerate, hasValidSources } = useHomeActions({
-    generatedYaml,
-    generatedYamlError,
-    appliedTemplateId,
-    recordConfigDownload: adapter?.recordConfigDownload,
-    storeSources,
-    nodes,
-    clearNodes,
-    parseMultipleSources,
-    generateConfig,
-  });
-
   if (!authChecked) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -232,10 +219,6 @@ function HomeSurfaceInner({ adapter }: Props) {
       editSubscriptionId={editSubscriptionId}
       generatedYaml={generatedYaml}
       generatedYamlError={generatedYamlError}
-      configLoading={configLoading}
-      hasValidSources={hasValidSources}
-      handleGenerate={handleGenerate}
-      handleDownload={handleDownload}
       subscription={subscription}
       noticeSlot={adapter?.renderNotice?.({ user, showAiColumn })}
       renderAnnouncement={adapter?.renderAnnouncement}

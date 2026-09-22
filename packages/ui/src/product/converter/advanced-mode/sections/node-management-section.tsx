@@ -412,14 +412,14 @@ export function NodeManagementSection({
         badge={
           <div className="ml-auto flex items-center gap-2">
             {nodes.length > 0 ? (
-              <Badge variant="outline" className="border-green-500/50 bg-green-500/10 text-green-300">
+              <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">
                 {nodes.length} 个节点
               </Badge>
             ) : (
               <Badge variant="secondary">无节点</Badge>
             )}
             {deletedMarkedNodes.length > 0 && (
-              <Badge variant="outline" className="border-red-500/50 bg-red-500/10 text-red-300">
+              <Badge variant="outline" className="border-red-200 bg-red-50 text-red-700">
                 {deletedMarkedNodes.length} 已删除
               </Badge>
             )}

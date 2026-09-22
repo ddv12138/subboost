@@ -7,7 +7,7 @@ import {
   Check,
   Clock,
   Copy,
-  Download,
+  CopyPlus,
   ExternalLink,
   FileCode,
   MoreVertical,
@@ -56,7 +56,6 @@ export type DashboardSurfaceAdapter = {
   duplicateSubscription?: (id: string) => Promise<Subscription>;
   refreshSubscription: (id: string) => Promise<RefreshSubscriptionResponse>;
   updateSubscriptionSettings: (id: string, payload: UpdateSettingsPayload) => Promise<void>;
-  resolveDownloadUrl?: (subscription: Subscription) => string;
   renderAnnouncement?: (context: { user: User }) => React.ReactNode;
   renderHeaderActions?: (context: { user: User }) => React.ReactNode;
   renderExtraQuickActions?: (context: { user: User }) => React.ReactNode;
@@ -67,29 +66,6 @@ export type DashboardSurfaceAdapter = {
 type Props = {
   adapter: DashboardSurfaceAdapter;
 };
-
-function buildYamlDownloadFilename(name: string): string {
-  const base =
-    String(name || "subboost-config")
-      .trim()
-      .replace(/[\r\n]/g, " ")
-      .replace(/[<>:"/\\|?*]+/g, "")
-      .replace(/\s+/g, "_")
-      .replace(/\.(?:ya?ml)$/i, "")
-      .slice(0, 80) || "subboost-config";
-  return `${base}.yaml`;
-}
-
-function triggerBrowserDownload(href: string, filename: string) {
-  const anchor = document.createElement("a");
-  anchor.href = href;
-  anchor.download = filename;
-  anchor.rel = "noopener noreferrer";
-  anchor.style.display = "none";
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-}
 
 async function copyText(text: string): Promise<boolean> {
   try {
@@ -205,25 +181,6 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
     }
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
-  };
-
-  const downloadSubscription = async (subscription: Subscription) => {
-    const filename = buildYamlDownloadFilename(subscription.name);
-    try {
-      const response = await fetch(adapter.resolveDownloadUrl?.(subscription) ?? subscription.subscriptionUrl);
-      if (!response.ok) throw new Error(`Download failed with status ${response.status}`);
-      const blob = await response.blob();
-      const objectUrl = URL.createObjectURL(blob);
-      triggerBrowserDownload(objectUrl, filename);
-      setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
-    } catch (error) {
-      console.error("Failed to fetch subscription YAML for download:", error);
-      toast({
-        title: "下载失败",
-        description: "请刷新页面后重试，或先复制订阅链接到代理软件。",
-        variant: "destructive",
-      });
-    }
   };
 
   const deleteSubscription = async (id: string) => {
@@ -361,11 +318,7 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
     <div className="container mx-auto px-4 py-8">
       {adapter.renderAnnouncement?.({ user })}
 
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold mb-1">我的订阅</h1>
-          <p className="text-white/50">管理您的订阅链接</p>
-        </div>
+      <div className="flex justify-end mb-8">
         <div className="flex items-center gap-2">
           {adapter.renderHeaderActions?.({ user })}
           <Link href={newSubscriptionHref}>
@@ -416,7 +369,6 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
                   onCopy={copyToClipboard}
                   onDelete={deleteSubscription}
                   onDuplicate={duplicateSubscription}
-                  onDownload={downloadSubscription}
                   onRefresh={refreshSubscription}
                   onSettings={openSubscriptionSettings}
                 />
@@ -509,7 +461,6 @@ function SubscriptionRow({
   onCopy,
   onDelete,
   onDuplicate,
-  onDownload,
   onRefresh,
   onSettings,
 }: {
@@ -520,13 +471,12 @@ function SubscriptionRow({
   onCopy: (subscriptionUrl: string, id: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onDuplicate: (id: string) => Promise<void>;
-  onDownload: (sub: Subscription) => Promise<void>;
   onRefresh: (id: string) => Promise<void>;
   onSettings: (sub: Subscription) => void;
 }) {
   return (
-    <div className="flex flex-col gap-3 p-4 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-colors sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-      <div className="flex min-w-0 flex-1 items-start gap-4 sm:items-center">
+    <div className="flex flex-col gap-3 p-4 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-colors xl:flex-row xl:items-center xl:justify-between xl:gap-4">
+      <div className="flex min-w-0 flex-1 items-start gap-4 xl:items-center">
         <div className="p-2 rounded-lg bg-white/10">
           <FileCode className="h-5 w-5 text-primary-500" />
         </div>
@@ -535,22 +485,22 @@ function SubscriptionRow({
             <h3 className="min-w-0 flex-1 truncate font-medium">{sub.name}</h3>
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/50">
-            <span className="flex items-center gap-1">
+            <span className="flex shrink-0 items-center gap-1 whitespace-nowrap">
               <Clock className="h-3.5 w-3.5" />
               创建于 {formatDashboardDate(sub.createdAt)}
             </span>
-            <span className="flex items-center gap-1">
+            <span className="flex shrink-0 items-center gap-1 whitespace-nowrap">
               <RefreshCw className="h-3.5 w-3.5" />
               更新于 {formatDashboardDate(sub.lastUpdatedAt)}
             </span>
             {sub.autoUpdateInterval && (
-              <span className="flex items-center gap-1">
+              <span className="flex shrink-0 items-center gap-1 whitespace-nowrap">
                 <RefreshCw className="h-3.5 w-3.5" />
                 每 {formatIntervalLabel(sub.autoUpdateInterval)} 刷新缓存
               </span>
             )}
             {!sub.autoUpdateInterval && sub.autoUpdateState.disabledAt && sub.autoUpdateState.disabledReason && (
-              <span className="flex items-center gap-1 text-amber-300">
+              <span className="flex shrink-0 items-center gap-1 whitespace-nowrap text-amber-300">
                 <AlertTriangle className="h-3.5 w-3.5" />
                 自动更新已关闭：{sub.autoUpdateState.disabledReason}
               </span>
@@ -559,9 +509,9 @@ function SubscriptionRow({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end">
+      <div className="flex flex-wrap items-center gap-2 xl:shrink-0 xl:justify-end">
         <Link href={editHref}>
-          <Button variant="ghost" size="sm" className="gap-0 sm:gap-2" title="回到首页编辑该订阅（更新后链接不变）">
+          <Button variant="ghost" size="sm" className="gap-0 text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950 sm:gap-2" title="回到首页编辑该订阅（更新后链接不变）">
             <Settings className="h-4 w-4" />
             <span className="hidden sm:inline">编辑</span>
           </Button>
@@ -570,7 +520,7 @@ function SubscriptionRow({
           variant="ghost"
           size="sm"
           onClick={() => onSettings(sub)}
-          className="gap-0 sm:gap-2"
+          className="gap-0 text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950 sm:gap-2"
           title="订阅设置（改名 / 自动更新）"
         >
           <MoreVertical className="h-4 w-4" />
@@ -581,7 +531,7 @@ function SubscriptionRow({
           size="sm"
           onClick={() => void onRefresh(sub.id)}
           disabled={refreshingId === sub.id}
-          className="gap-0 sm:gap-2"
+          className="gap-0 text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950 sm:gap-2"
           title="重新生成配置并刷新缓存"
         >
           <RefreshCw className={`h-4 w-4 ${refreshingId === sub.id ? "animate-spin" : ""}`} />
@@ -591,7 +541,7 @@ function SubscriptionRow({
           variant="ghost"
           size="sm"
           onClick={() => void onCopy(sub.subscriptionUrl, sub.id)}
-          className="gap-0 sm:gap-2"
+          className="gap-0 text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950 sm:gap-2"
           title="复制订阅链接"
         >
           {copiedId === sub.id ? (
@@ -610,27 +560,17 @@ function SubscriptionRow({
           variant="ghost"
           size="sm"
           onClick={() => void onDuplicate(sub.id)}
-          className="gap-0 sm:gap-2"
-          title="复制该订阅（创建副本）"
+          className="gap-0 text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950 sm:gap-2"
+          title="克隆该订阅（创建副本）"
         >
-          <Copy className="h-4 w-4" />
-          <span className="hidden sm:inline">复制</span>
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => void onDownload(sub)}
-          className="gap-0 sm:gap-2"
-          title="下载订阅配置"
-        >
-          <Download className="h-4 w-4" />
-          <span className="hidden sm:inline">下载</span>
+          <CopyPlus className="h-4 w-4" />
+          <span className="hidden sm:inline">克隆</span>
         </Button>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => void onDelete(sub.id)}
-          className="gap-0 text-red-400 hover:text-red-300 hover:bg-red-500/10 sm:gap-2"
+          className="gap-0 text-red-600 hover:bg-red-50 hover:text-red-700 sm:gap-2"
           title="删除订阅"
         >
           <Trash2 className="h-4 w-4" />

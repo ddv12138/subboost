@@ -49,7 +49,7 @@ const defaultNavItems: NavItem[] = [
   { href: "/faq", label: "FAQ", icon: HelpCircle },
 ];
 
-const localNavItems: NavItem[] = [{ href: "/dashboard", label: "我的订阅", icon: LayoutDashboard, authOnly: true }];
+const localNavItems: NavItem[] = [];
 
 function isNavItemActive(pathname: string, href: string): boolean {
   if (href === "/") return pathname === "/";
@@ -128,13 +128,13 @@ export function Header({
           {/* Logo */}
           <div className="flex items-center gap-2">
             <Link href="/" className="group flex items-center gap-2">
-              <Image
+              {mode !== "local" && <Image
                 src="/logo.png"
                 alt="SubBoost"
                 width={36}
                 height={36}
                 className="rounded-xl shadow-lg shadow-blue-500/25 transition-shadow group-hover:shadow-blue-500/40"
-              />
+              />}
               <span className="hidden text-xl font-bold leading-none text-neutral-950 sm:inline-flex">
                 SubBoost
               </span>
@@ -148,7 +148,7 @@ export function Header({
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1">
+          {visibleNavItems.length > 0 && <nav className="hidden md:flex items-center gap-1">
             {visibleNavItems.map((item) => {
               const isActive = isNavItemActive(pathname, item.href);
               return (
@@ -181,15 +181,15 @@ export function Header({
                 {visiblePrivilegedItem.label}
               </Link>
             )}
-          </nav>
+          </nav>}
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-2">
             {/* User Menu */}
-            <UserMenu privilegedMenuItem={privilegedMenuItem} {...(mode === "local" ? { minimal: true } : {})} />
+            <UserMenu privilegedMenuItem={privilegedMenuItem} {...(mode === "local" ? { minimal: true, hideAvatar: true } : {})} />
 
             {/* Mobile Menu Button */}
-            <button
+            {(visibleNavItems.length > 0 || !user) && <button
               className="md:hidden p-2 rounded-lg hover:bg-white/5 transition-colors"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
@@ -198,12 +198,12 @@ export function Header({
               ) : (
                 <Menu className="w-5 h-5 text-white/60" />
               )}
-            </button>
+            </button>}
           </div>
         </div>
 
         {/* Mobile Navigation */}
-        {mobileMenuOpen && (
+        {mobileMenuOpen && (visibleNavItems.length > 0 || !user) && (
           <div className="md:hidden border-t border-white/10 py-4">
             <nav className="flex flex-col gap-1">
               {visibleNavItems.map((item) => {

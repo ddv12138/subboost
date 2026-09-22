@@ -46,6 +46,9 @@ export function UnsavedPrompt() {
     }
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if ((window as typeof window & { __skipUnsavedChangesPrompt?: boolean }).__skipUnsavedChangesPrompt) {
+        return;
+      }
       if (hasUnsavedChanges) {
         e.preventDefault();
         e.returnValue = "您有未保存的配置更改，确定要离开吗？";
@@ -121,4 +124,3 @@ export function useUnsavedChanges() {
     return hasNodes || hasUnparsedSources;
   }, [nodes, sources]);
 }
-

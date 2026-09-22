@@ -151,22 +151,10 @@ describe("local app pages and adapters", () => {
 
     renderToStaticMarkup(React.createElement(DashboardPage));
     const adapter = mocks.dashboardAdapter;
-    vi.stubGlobal("window", {
-      location: {
-        href: "http://local.subboost.test:31401/dashboard",
-        origin: "http://local.subboost.test:31401",
-      },
-    });
-
     await expect(adapter.fetchSubscriptions()).resolves.toEqual([{ id: "sub-1" }]);
     await expect(adapter.deleteSubscription("sub 1")).resolves.toBeUndefined();
     await expect(adapter.refreshSubscription("sub 1")).resolves.toEqual({ ok: true });
     await expect(adapter.updateSubscriptionSettings("sub 1", { name: "Sub" })).resolves.toBeUndefined();
-    expect(
-      adapter.resolveDownloadUrl({
-        subscriptionUrl: "http://localhost:3001/api/subscriptions/token-1/config.yaml",
-      })
-    ).toBe("http://local.subboost.test:31401/api/subscriptions/token-1/config.yaml");
     expect(adapter.autoUpdateIntervalPolicy).toEqual({
       defaultHours: 12,
       minHours: 0.1,
@@ -178,30 +166,7 @@ describe("local app pages and adapters", () => {
     expect(fetchMock).toHaveBeenCalledWith("/api/subscriptions/sub%201", expect.objectContaining({ method: "PUT" }));
   });
 
-  it("renders local settings for anonymous and authenticated states", async () => {
-    let html = renderToStaticMarkup(React.createElement(SettingsPage));
-    expect(html).toContain("未登录");
-    expect(html).toContain("/api/health/live");
-    expect(mocks.buttons.find((button: any) => button.variant === "destructive")).toMatchObject({
-      disabled: true,
-    });
-
-    vi.stubGlobal("window", { location: { href: "" } });
-    mocks.buttons = [];
-    mocks.userState = {
-      fetchUser: vi.fn(),
-      logout: vi.fn(),
-      user: { username: "admin", subscriptionCount: 2, quota: { maxSubscriptions: 9999 } },
-    };
-    html = renderToStaticMarkup(React.createElement(SettingsPage));
-    expect(html).toContain("admin");
-    expect(html).not.toContain("订阅容量");
-    const logoutButton = mocks.buttons.find((button: any) => button.variant === "destructive");
-    expect(logoutButton).toMatchObject({ disabled: false });
-    logoutButton.onClick();
-    await Promise.resolve();
-    await Promise.resolve();
-    expect(mocks.userState.logout).toHaveBeenCalledTimes(1);
-    expect(window.location.href).toBe("/login");
+  it("redirects the retired local settings route to the dashboard", () => {
+    expect(() => renderToStaticMarkup(React.createElement(SettingsPage))).toThrow("NEXT_REDIRECT");
   });
 });

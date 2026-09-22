@@ -48,6 +48,7 @@ vi.mock("lucide-react", () => ({
   Check: () => null,
   Clock: () => null,
   Copy: () => null,
+  CopyPlus: () => null,
   Download: () => null,
   ExternalLink: () => null,
   FileCode: () => null,
@@ -299,7 +300,7 @@ describe("SubscriptionDashboardSurface", () => {
     expect(setters[2]).toHaveBeenCalledWith("sub-1");
     expect(setters[2]).toHaveBeenCalledWith(null);
 
-    mocks.captures.buttons.find((props: any) => props.className?.includes("text-red-400")).onClick();
+    mocks.captures.buttons.find((props: any) => props.title === "删除订阅").onClick();
     await flushPromises();
     expect(mocks.confirmDialog).toHaveBeenCalledWith(expect.objectContaining({ confirmText: "删除" }));
     expect(adapter.deleteSubscription).toHaveBeenCalledWith("sub-1");
@@ -344,79 +345,6 @@ describe("SubscriptionDashboardSurface", () => {
     expect(mocks.toast).not.toHaveBeenCalledWith(expect.objectContaining({ variant: "destructive" }));
   });
 
-  it("downloads subscription YAML with a yaml filename instead of opening a new tab", async () => {
-    const dom = stubDocumentActions();
-    const blob = new Blob(["mixed-port: 7890\n"], { type: "text/yaml" });
-    const fetchMock = vi.fn(async () => ({ ok: true, status: 200, blob: vi.fn(async () => blob) }));
-    const createObjectURL = vi.fn(() => "blob:subboost-config");
-    const revokeObjectURL = vi.fn();
-    class TestURL extends URL {}
-    TestURL.createObjectURL = createObjectURL;
-    TestURL.revokeObjectURL = revokeObjectURL;
-    vi.stubGlobal("fetch", fetchMock);
-    vi.stubGlobal("URL", TestURL);
-
-    renderSurface(createAdapter(), { 0: [subscription], 1: false, 2: null, 3: null });
-    await mocks.captures.buttons.find((props: any) => props.title === "下载订阅配置").onClick();
-    await flushPromises();
-
-    expect(fetchMock).toHaveBeenCalledWith("https://example.com/sub");
-    expect(createObjectURL).toHaveBeenCalledWith(blob);
-    expect(dom.createElement).toHaveBeenCalledWith("a");
-    expect(dom.anchor.href).toBe("blob:subboost-config");
-    expect(dom.anchor.download).toBe("Primary.yaml");
-    expect(dom.anchor.rel).toBe("noopener noreferrer");
-    expect(dom.anchor.click).toHaveBeenCalled();
-    expect(dom.anchor.remove).toHaveBeenCalled();
-    expect(revokeObjectURL).toHaveBeenCalledWith("blob:subboost-config");
-  });
-
-  it("reports download failures without opening the subscription URL", async () => {
-    const dom = stubDocumentActions();
-    vi.stubGlobal("fetch", vi.fn(async () => {
-      throw new Error("cors");
-    }));
-
-    renderSurface(createAdapter(), { 0: [subscription], 1: false, 2: null, 3: null });
-    await mocks.captures.buttons.find((props: any) => props.title === "下载订阅配置").onClick();
-    await flushPromises();
-
-    expect(dom.createElement).not.toHaveBeenCalledWith("a");
-    expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({
-      title: "下载失败",
-      variant: "destructive",
-    }));
-  });
-
-  it("uses the adapter download URL resolver before fetching subscription YAML", async () => {
-    const dom = stubDocumentActions();
-    const blob = new Blob(["mixed-port: 7890\n"], { type: "text/yaml" });
-    const fetchMock = vi.fn(async () => ({ ok: true, status: 200, blob: vi.fn(async () => blob) }));
-    vi.stubGlobal("fetch", fetchMock);
-    class TestURL extends URL {}
-    TestURL.createObjectURL = vi.fn(() => "blob:subboost-config");
-    TestURL.revokeObjectURL = vi.fn();
-    vi.stubGlobal("URL", TestURL);
-
-    const crossOriginSubscription = {
-      ...subscription,
-      subscriptionUrl: "https://subscription.example.test/download/token-1?download=1",
-    };
-    const resolveDownloadUrl = vi.fn(() => "http://localhost/download/token-1?download=1");
-    renderSurface(createAdapter({ resolveDownloadUrl }), {
-      0: [crossOriginSubscription],
-      1: false,
-      2: null,
-      3: null,
-    });
-    await mocks.captures.buttons.find((props: any) => props.title === "下载订阅配置").onClick();
-    await flushPromises();
-
-    expect(resolveDownloadUrl).toHaveBeenCalledWith(crossOriginSubscription);
-    expect(fetchMock).toHaveBeenCalledWith("http://localhost/download/token-1?download=1");
-    expect(dom.anchor.download).toBe("Primary.yaml");
-  });
-
   it("guards cancelled delete and in-flight refresh failures", async () => {
     const adapter = createAdapter({ refreshSubscription: vi.fn(async () => { throw new Error("refresh failed"); }) });
     renderSurface(adapter, { 0: [subscription], 1: false, 2: null, 3: "sub-1" });
@@ -430,7 +358,7 @@ describe("SubscriptionDashboardSurface", () => {
     expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "refresh failed", variant: "destructive" }));
 
     mocks.confirmDialog.mockResolvedValueOnce(false);
-    mocks.captures.buttons.find((props: any) => props.className?.includes("text-red-400")).onClick();
+    mocks.captures.buttons.find((props: any) => props.title === "删除订阅").onClick();
     await flushPromises();
     expect(adapter.deleteSubscription).not.toHaveBeenCalled();
 
@@ -442,7 +370,7 @@ describe("SubscriptionDashboardSurface", () => {
 
     const deleteFailAdapter = createAdapter({ deleteSubscription: vi.fn(async () => { throw new Error("delete failed"); }) });
     renderSurface(deleteFailAdapter, { 0: [subscription], 1: false, 2: null, 3: null });
-    mocks.captures.buttons.find((props: any) => props.className?.includes("text-red-400")).onClick();
+    mocks.captures.buttons.find((props: any) => props.title === "删除订阅").onClick();
     await flushPromises();
     expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "删除失败，请稍后重试", variant: "destructive" }));
   });
