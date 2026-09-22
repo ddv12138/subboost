@@ -191,8 +191,11 @@ describe("ProxyGroupsPreview", () => {
     expect(html).toContain("会话保持");
     expect(html).toContain("unknown-strategy");
     expect(html).toContain("mystery");
-    expect(html).toContain("border-neutral-200");
-    expect(html).not.toContain("border-purple-500/50");
+    expect(html).toContain("border-purple-500/50");
+    expect(html).toContain("border-pink-500/50");
+    expect(html).toContain("border-orange-500/50");
+    expect(html).toContain("border-cyan-500/50");
+    expect(html).toContain("border-yellow-500/50");
   });
 
   it("handles expand, drag-over, drop, drag-leave, and drag handle events", () => {

@@ -511,7 +511,7 @@ function SubscriptionRow({
 
       <div className="flex flex-wrap items-center gap-2 xl:shrink-0 xl:justify-end">
         <Link href={editHref}>
-          <Button variant="ghost" size="sm" className="gap-0 text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950 sm:gap-2" title="回到首页编辑该订阅（更新后链接不变）">
+          <Button variant="ghost" size="sm" className="gap-0 border border-transparent text-neutral-700 transition-all hover:-translate-y-px hover:border-neutral-300 hover:bg-white hover:text-neutral-950 hover:shadow-sm sm:gap-2" title="回到首页编辑该订阅（更新后链接不变）">
             <Settings className="h-4 w-4" />
             <span className="hidden sm:inline">编辑</span>
           </Button>
@@ -520,7 +520,7 @@ function SubscriptionRow({
           variant="ghost"
           size="sm"
           onClick={() => onSettings(sub)}
-          className="gap-0 text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950 sm:gap-2"
+          className="gap-0 border border-transparent text-neutral-700 transition-all hover:-translate-y-px hover:border-neutral-300 hover:bg-white hover:text-neutral-950 hover:shadow-sm sm:gap-2"
           title="订阅设置（改名 / 自动更新）"
         >
           <MoreVertical className="h-4 w-4" />
@@ -531,7 +531,7 @@ function SubscriptionRow({
           size="sm"
           onClick={() => void onRefresh(sub.id)}
           disabled={refreshingId === sub.id}
-          className="gap-0 text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950 sm:gap-2"
+          className="gap-0 border border-transparent text-neutral-700 transition-all hover:-translate-y-px hover:border-neutral-300 hover:bg-white hover:text-neutral-950 hover:shadow-sm sm:gap-2"
           title="重新生成配置并刷新缓存"
         >
           <RefreshCw className={`h-4 w-4 ${refreshingId === sub.id ? "animate-spin" : ""}`} />
@@ -541,7 +541,7 @@ function SubscriptionRow({
           variant="ghost"
           size="sm"
           onClick={() => void onCopy(sub.subscriptionUrl, sub.id)}
-          className="gap-0 text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950 sm:gap-2"
+          className="gap-0 border border-transparent text-neutral-700 transition-all hover:-translate-y-px hover:border-neutral-300 hover:bg-white hover:text-neutral-950 hover:shadow-sm sm:gap-2"
           title="复制订阅链接"
         >
           {copiedId === sub.id ? (
@@ -560,7 +560,7 @@ function SubscriptionRow({
           variant="ghost"
           size="sm"
           onClick={() => void onDuplicate(sub.id)}
-          className="gap-0 text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950 sm:gap-2"
+          className="gap-0 border border-transparent text-neutral-700 transition-all hover:-translate-y-px hover:border-neutral-300 hover:bg-white hover:text-neutral-950 hover:shadow-sm sm:gap-2"
           title="克隆该订阅（创建副本）"
         >
           <CopyPlus className="h-4 w-4" />
@@ -570,7 +570,7 @@ function SubscriptionRow({
           variant="ghost"
           size="sm"
           onClick={() => void onDelete(sub.id)}
-          className="gap-0 text-red-600 hover:bg-red-50 hover:text-red-700 sm:gap-2"
+          className="gap-0 border border-transparent text-red-600 transition-all hover:-translate-y-px hover:border-red-200 hover:bg-red-50 hover:text-red-700 hover:shadow-sm sm:gap-2"
           title="删除订阅"
         >
           <Trash2 className="h-4 w-4" />

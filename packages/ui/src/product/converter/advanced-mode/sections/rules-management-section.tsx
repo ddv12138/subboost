@@ -219,15 +219,15 @@ export function RulesManagementSection({
                         <div className="flex flex-wrap items-center gap-1.5">
                           <span className="min-w-0 max-w-full break-words text-xs font-medium leading-5 text-white">{entry.summary}</span>
                           {shouldShowSourceLabel && (
-                            <Badge variant="outline" className="max-w-full border-white/10 bg-white/5 text-white/60">
+                          <Badge variant="outline" className="max-w-full border-white/10 bg-white/5 text-white/60">
                               {entry.sourceLabel}
                             </Badge>
                           )}
-                          <Badge variant="outline" className="max-w-full border-indigo-500/30 bg-indigo-500/10 text-indigo-200">
+                          <Badge variant="outline" className="max-w-full border-indigo-300 bg-indigo-50 text-indigo-700">
                             {entry.target}
                           </Badge>
                           {entry.noResolve && (
-                            <Badge variant="outline" className="shrink-0 border-amber-500/30 bg-amber-500/10 text-amber-200">
+                            <Badge variant="outline" className="shrink-0 border-amber-300 bg-amber-50 text-amber-700">
                               no-resolve
                             </Badge>
                           )}

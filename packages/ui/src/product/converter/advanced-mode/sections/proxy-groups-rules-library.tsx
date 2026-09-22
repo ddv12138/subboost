@@ -97,7 +97,7 @@ export function ProxyGroupsRulesLibrary() {
         <span className="text-xs font-medium text-white/80">
           方法一：搜索规则集
         </span>
-        <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-1.5 py-0 text-[9px] font-medium leading-4 text-amber-200">
+        <span className="rounded-full border border-amber-300 bg-amber-50 px-1.5 py-0 text-[9px] font-medium leading-4 text-amber-700">
           推荐
         </span>
         <span className="text-[10px] text-white/40 ml-auto">

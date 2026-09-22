@@ -93,23 +93,23 @@ export function SubscriptionLinkDialog({
               />
             </div>
 
-            <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+            <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3">
               <div className="flex items-center justify-between gap-4">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm text-white/80">更新时智能匹配节点</p>
+                    <p className="text-sm text-neutral-800">更新时智能匹配节点</p>
                     <SmartNodeMatchingHelp enabled={smartNodeMatchingEnabled} />
                   </div>
                 </div>
                 <Switch checked={smartNodeMatchingEnabled} onCheckedChange={setSmartNodeMatchingEnabled} />
               </div>
 
-              <div className="my-3 border-t border-white/10" />
+              <div className="my-3 border-t border-neutral-200" />
 
               <div className="flex items-center justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="text-sm text-white/80">启用自动更新</p>
-                  <p className="mt-1 text-xs text-white/45">开启后服务器会按设定间隔刷新缓存</p>
+                  <p className="text-sm text-neutral-800">启用自动更新</p>
+                  <p className="mt-1 text-xs text-neutral-500">开启后服务器会按设定间隔刷新缓存</p>
                 </div>
                 <Switch checked={autoUpdateEnabled} onCheckedChange={setAutoUpdateEnabled} />
               </div>
@@ -124,14 +124,14 @@ export function SubscriptionLinkDialog({
                     value={autoUpdateHours}
                     onChange={(e) => setAutoUpdateHours(Number(e.target.value))}
                   />
-                  <p className="text-xs text-white/45">最小 {minAutoUpdateLabel}，按创建时间计时</p>
+                  <p className="text-xs text-neutral-500">最小 {minAutoUpdateLabel}，按创建时间计时</p>
                 </div>
               )}
             </div>
 
-            <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-sm text-amber-200">
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
               <p className="font-medium mb-1">注意事项</p>
-              <ul className="text-xs text-amber-200/70 space-y-1">
+              <ul className="space-y-1 text-xs text-amber-700">
                 <li>🔒 配置数据将加密存储于服务器</li>
                 <li>🔑 订阅链接相当于访问凭证，请勿公开分享</li>
                 <li>⏱️ 客户端高频拉取订阅会被封禁，请合理配置</li>
@@ -167,11 +167,11 @@ export function SubscriptionLinkDialog({
               </div>
             </div>
 
-            <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-sm">
-              <p className="text-green-200 font-medium mb-1">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm">
+              <p className="mb-1 font-medium text-emerald-800">
                 ✅ {isEditingExistingSubscription ? "更新成功" : "创建成功"}
               </p>
-              <p className="text-xs text-green-200/70">
+              <p className="text-xs text-emerald-700">
                 {isEditingExistingSubscription ? "订阅链接保持不变，可在仪表盘查看" : "您可以在仪表盘中管理所有订阅"}
               </p>
             </div>
@@ -204,4 +204,3 @@ export function SubscriptionLinkDialog({
     </Dialog>
   );
 }
-

@@ -135,7 +135,7 @@ export function UserMenu({
                 )}
                 <div className="text-xs text-white/40">{user.subscriptionCount}/{user.quota.maxSubscriptions} 订阅</div>
               </div>}
-              <div className="py-1">
+              {!minimal && <div className="py-1">
               {privilegedMenuItem && user.isAdmin && !user.isBanned && (
                 <Link
                   href={privilegedMenuItem.href}
@@ -154,10 +154,10 @@ export function UserMenu({
                 <LayoutDashboard className="h-4 w-4" />
                 我的订阅
               </Link>}
-            </div>
+            </div>}
 
             {/* Logout */}
-            <div className="border-t border-neutral-200 pt-1">
+            <div className={minimal ? "" : "border-t border-neutral-200 pt-1"}>
               <button
                 onClick={handleLogout}
                 className="flex w-full items-center gap-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"

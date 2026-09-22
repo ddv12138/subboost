@@ -283,10 +283,10 @@ function RuleStateBadge({ state }: { state: Exclude<ProxyGroupRuleRowState, "act
 
 function RuleSourceBadge({ source }: { source: RuleSource }) {
   const className = {
-    preset: "border-white/10 bg-blue-500/10 text-blue-200",
-    custom: "border-emerald-500/20 bg-emerald-500/10 text-emerald-200",
-    manual: "border-indigo-400/20 bg-indigo-500/10 text-indigo-200",
-    experimental: "border-amber-500/30 bg-amber-500/10 text-amber-200",
+    preset: "border-blue-300 bg-blue-50 text-blue-700",
+    custom: "border-emerald-300 bg-emerald-50 text-emerald-700",
+    manual: "border-indigo-300 bg-indigo-50 text-indigo-700",
+    experimental: "border-amber-300 bg-amber-50 text-amber-700",
   }[source];
   const label = {
     preset: "预设",
@@ -316,7 +316,7 @@ function RuleTextBadge({ children }: { children: React.ReactNode }) {
 
 function NoResolveBadge() {
   return (
-    <Badge variant="outline" className="border-amber-500/30 bg-amber-500/10 px-1.5 py-0 text-[9px] text-amber-200">
+    <Badge variant="outline" className="border-amber-300 bg-amber-50 px-1.5 py-0 text-[9px] text-amber-700">
       no-resolve
     </Badge>
   );
