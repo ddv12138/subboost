@@ -76,7 +76,7 @@ describe("shared layout components", () => {
 
     expect(html).toContain("SubBoost");
     expect(html).toContain("首页");
-    expect(html).toContain("模板库");
+    expect(html).not.toContain("模板库");
     expect(html).toContain("FAQ");
     expect(html).not.toContain("我的订阅");
     expect(html).toContain("UserMenu:none");
@@ -103,7 +103,7 @@ describe("shared layout components", () => {
   it("renders footer links according to mode and auth state", () => {
     let html = renderToStaticMarkup(React.createElement(Footer, { mode: "local", buildVersion: "2.3.17" }));
     expect(html).toContain("开源仓库");
-    expect(html).toContain("https://github.com/SubBoost/subboost");
+    expect(html).toContain("https://github.com/ddv12138/subboost");
     expect(html).toContain("配置教程");
     expect(html).toContain("https://subboost.org/faq");
     expect(html).not.toContain("本地管理员入口");
@@ -126,7 +126,7 @@ describe("shared layout components", () => {
     mocks.userState = { user: { id: "admin-1", isAdmin: true, isBanned: false } };
     html = renderToStaticMarkup(React.createElement(Footer, { buildVersion: "2.3.17" }));
     expect(html).toContain("开源仓库");
-    expect(html).toContain("https://github.com/SubBoost/subboost");
+    expect(html).toContain("https://github.com/ddv12138/subboost");
     expect(html).toContain('data-brand-icon="github"');
     expect(html).toContain("RyanVan&#x27;s Blog");
     expect(html).toContain("https://linux.do");

@@ -32,6 +32,7 @@ vi.mock("react", async (importOriginal) => {
     useEffect: (effect: () => void | (() => void)) => {
       effect();
     },
+    useState: () => [true, vi.fn()],
   };
 });
 
@@ -205,7 +206,7 @@ describe("HomeSurface", () => {
       storeSources: [{ id: "s1", type: "url", content: "https://example.com/sub" }],
     });
     expect(mocks.captures.cleanIntent).toMatchObject({
-      authChecked: false,
+      authChecked: true,
       setCopied: mocks.setCopied,
       setEditingSubscription: mocks.setEditingSubscription,
     });
@@ -227,7 +228,7 @@ describe("HomeSurface", () => {
     expect(mocks.setConfigDraftUserScope).toHaveBeenCalledWith("user-1");
     expect(mocks.consumeAuthConfigHandoff).toHaveBeenCalled();
     expect(mocks.configSetState).not.toHaveBeenCalled();
-    expect(mocks.captures.cleanIntent.authChecked).toBe(false);
+    expect(mocks.captures.cleanIntent.authChecked).toBe(true);
   });
 
   it("uses subscription login fallback and skips handoff when no user is signed in", async () => {
@@ -241,7 +242,8 @@ describe("HomeSurface", () => {
     const html = renderToStaticMarkup(React.createElement(HomeSurface, { adapter }));
     await flushAsync();
 
-    expect(html).toContain("notice:null:false");
+    expect(html).toContain("使用 SubBoost 需要登录");
+    expect(html).toContain('href="/subscription-login"');
     expect(mocks.captures.editingLoader.loginHref).toBe("/subscription-login");
     expect(mocks.setConfigDraftUserScope).toHaveBeenCalledWith(null);
     expect(mocks.consumeAuthConfigHandoff).not.toHaveBeenCalled();

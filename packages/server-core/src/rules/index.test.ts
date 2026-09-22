@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { DEFAULT_RULE_PROVIDER_BASE_URL } from "@subboost/core/rules/metadata";
 import {
   buildCnRuleCandidateResponse,
   buildCnRuleCandidateUnavailableResponse,
@@ -258,7 +259,7 @@ describe("rule catalog service", () => {
 
     const present = await service.searchRules({ keyword: "gemini", page: 1, size: 20 });
     expect(present.items.map((item) => item.url)).toEqual([
-      "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/google-gemini.mrs",
+      `${DEFAULT_RULE_PROVIDER_BASE_URL}/geosite/google-gemini.mrs`,
     ]);
 
     const geoip = await service.searchRules({ keyword: "cn", type: "geoip", page: 1, size: 1 });
@@ -266,7 +267,7 @@ describe("rule catalog service", () => {
       expect.objectContaining({
         behavior: "ipcidr",
         id: "cn-ip",
-        url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geoip/cn.mrs",
+        url: `${DEFAULT_RULE_PROVIDER_BASE_URL}/geoip/cn.mrs`,
       }),
     ]);
     expect(geoip.totalMatched).toBe(1);

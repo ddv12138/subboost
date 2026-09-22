@@ -41,6 +41,7 @@ vi.mock("@subboost/ui/store/config-store", () => ({
 
 vi.mock("./sections/input-section", () => ({ InputSection: section("input") }));
 vi.mock("./sections/node-management-section", () => ({ NodeManagementSection: section("filter") }));
+vi.mock("./sections/speed-test-section", () => ({ SpeedTestSection: section("speedtest") }));
 vi.mock("./sections/dialer-proxy-groups-section", () => ({ DialerProxyGroupsSection: section("chain") }));
 vi.mock("./sections/proxy-groups-section", () => ({ ProxyGroupsSection: section("proxy") }));
 vi.mock("./sections/rules-management-section", () => ({ RulesManagementSection: section("rules") }));
@@ -67,6 +68,7 @@ describe("AdvancedMode", () => {
       "input",
       "proxy",
       "rules",
+      "speedtest",
     ]);
     for (const props of Object.values(captures.sections)) {
       expect(props.isExpanded).toBe(true);

@@ -192,7 +192,7 @@ function renderSurface(
 ) {
   stateMock.enabled = true;
   stateMock.callIndex = 0;
-  stateMock.overrides = overrides;
+  stateMock.overrides = { 14: true, ...overrides };
   stateMock.runEffectCleanups = Boolean(options.runEffectCleanups);
   stateMock.runEffects = Boolean(options.runEffects);
   stateMock.setters = [];
@@ -217,7 +217,7 @@ describe("TemplateLibrarySurface", () => {
     mocks.captures = { buttons: [], tabTriggers: [], cards: [] };
     mocks.confirmDialog.mockResolvedValue(true);
     mocks.searchParams.get.mockReturnValue(null);
-    mocks.userStore = { user: { id: "user-1", isAdmin: true }, fetchUser: vi.fn() };
+    mocks.userStore = { user: { id: "user-1", isAdmin: true }, fetchUser: vi.fn().mockResolvedValue(undefined) };
     mocks.configStore = {
       template: "minimal",
       enabledProxyGroups: ["Auto"],
@@ -383,15 +383,18 @@ describe("TemplateLibrarySurface", () => {
     renderSurface(createAdapter(), { 3: [], 4: true });
     expect(mocks.captures.cards).toEqual([]);
 
-    mocks.userStore = { user: null, fetchUser: vi.fn() };
-    renderSurface(createAdapter(), { 2: "my", 3: [] });
-    expect(mocks.captures.tabTriggers.map((props: any) => props.value)).toEqual(["default", "catalog"]);
+    mocks.userStore = { user: null, fetchUser: vi.fn().mockResolvedValue(undefined) };
+    const guest = renderSurface(createAdapter(), { 2: "my", 3: [] });
+    expect(guest.html).toContain("使用模板库需要登录");
+    expect(guest.html).toContain('href="/login"');
+    expect(mocks.captures.tabTriggers).toEqual([]);
     expect(mocks.captures.uploadDialog).toBeUndefined();
 
+    mocks.userStore = { user: { id: "user-1", isAdmin: true }, fetchUser: vi.fn().mockResolvedValue(undefined) };
     renderSurface(createAdapter({ enabledTabs: { default: true, catalog: false, my: false }, allowUpload: false }), { 3: [] });
     expect(mocks.captures.tabTriggers.map((props: any) => props.value)).toEqual(["default"]);
 
-    mocks.userStore = { user: { id: "user-1", isAdmin: true }, fetchUser: vi.fn() };
+    mocks.userStore = { user: { id: "user-1", isAdmin: true }, fetchUser: vi.fn().mockResolvedValue(undefined) };
     const { setters, adapter } = renderSurface(createAdapter(), { 2: "my", 3: [] });
     mocks.captures.buttons.find((props: any) => textOf(props.children).includes("创建模板")).onClick();
     expect(adapter.interactions.templateUploadOpened).toHaveBeenCalledWith({ entry: "templatesPage" });
@@ -439,7 +442,7 @@ describe("TemplateLibrarySurface", () => {
     expect(failed.setters[3]).toHaveBeenCalledWith([]);
     expect(failed.setters[4]).toHaveBeenCalledWith(false);
 
-    mocks.userStore = { user: null, fetchUser: vi.fn() };
+    mocks.userStore = { user: null, fetchUser: vi.fn().mockResolvedValue(undefined) };
     const guarded = renderSurface(createAdapter(), { 2: "my" }, { runEffects: true });
     expect(guarded.setters[2]).toHaveBeenCalledWith("default");
   });
