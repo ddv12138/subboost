@@ -2,14 +2,17 @@ FROM node:22-alpine AS deps
 WORKDIR /package
 RUN apk add --no-cache openssl
 
-COPY packages/core packages/core
-COPY packages/server-core packages/server-core
-COPY packages/ui packages/ui
-COPY packages/config packages/config
-COPY local/package*.json local/
+# Keep this layer dependent on manifests only. Copying package source here made
+# every UI or server edit invalidate the dependency-install cache.
+COPY packages/core/package.json packages/core/package.json
+COPY packages/server-core/package.json packages/server-core/package.json
+COPY packages/ui/package.json packages/ui/package.json
+COPY packages/config/package.json packages/config/package.json
+COPY local/package.json local/package.json
 
 WORKDIR /package/local
-RUN npm config set registry https://registry.npmmirror.com && npm install
+RUN npm config set registry https://registry.npmmirror.com && \
+    npm install --prefer-offline --no-audit
 
 FROM node:22-alpine AS builder
 WORKDIR /package
