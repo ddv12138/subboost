@@ -6,20 +6,20 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@subboost/ui/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default:
-          "border border-primary-500/50 bg-primary-500/20 text-white hover:bg-primary-500/30 hover:border-primary-400/70 shadow-lg shadow-primary-500/10 hover:shadow-primary-500/20",
+          "border border-neutral-950 bg-neutral-950 text-white hover:bg-neutral-800",
         destructive:
-          "border border-red-500/50 bg-red-500/20 text-white hover:bg-red-500/30 hover:border-red-400/70 shadow-lg shadow-red-500/10 hover:shadow-red-500/20",
+          "border border-red-700 bg-red-700 text-white hover:bg-red-800",
         outline:
-          "border border-white/15 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white",
+          "border border-neutral-300 bg-white hover:bg-neutral-100 text-neutral-800",
         secondary:
-          "bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/15",
-        ghost: "hover:bg-white/5 text-white/60 hover:text-white",
-        link: "text-indigo-400 underline-offset-4 hover:underline hover:text-indigo-300",
+          "bg-neutral-100 hover:bg-neutral-200 text-neutral-800 border border-neutral-200",
+        ghost: "hover:bg-neutral-100 text-neutral-700 hover:text-neutral-950",
+        link: "text-neutral-950 underline-offset-4 hover:underline",
       },
       size: {
         default: "h-10 px-4 py-2",

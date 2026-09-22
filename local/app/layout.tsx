@@ -42,10 +42,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const { buildVersion } = resolveAppVersionInfo({ env: process.env, cwd: process.cwd() });
 
   return (
-    <html lang="zh-CN" className="dark">
+    <html lang="zh-CN">
       <body className="font-sans">
         <ScrollLockStabilizer />
-        <div className="min-h-screen bg-gradient-radial flex flex-col">
+        <div className="local-minimal min-h-screen flex flex-col">
           <LocalHeader />
           <main className="flex-1 pb-16 md:pb-0">{children}</main>
           <Footer mode="local" buildVersion={buildVersion} />

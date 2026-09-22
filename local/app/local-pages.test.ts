@@ -8,7 +8,6 @@ const mocks = vi.hoisted(() => ({
   homeAdapter: null as any,
   readJsonResponse: vi.fn(),
   readSourceImportResponse: vi.fn(),
-  templateAdapter: null as any,
   userState: {
     fetchUser: vi.fn(),
     logout: vi.fn(),
@@ -59,13 +58,6 @@ vi.mock("@subboost/ui/store/user-store", () => ({
   useUserStore: () => mocks.userState,
 }));
 
-vi.mock("@subboost/ui/templates/template-library-surface", () => ({
-  TemplateLibrarySurface: (props: any) => {
-    mocks.templateAdapter = props.adapter;
-    return React.createElement("main", null, "TemplateLibrarySurface");
-  },
-}));
-
 vi.mock("@local/components/local-login", () => ({
   LocalLogin: () => React.createElement("main", null, "LocalLogin"),
 }));
@@ -74,8 +66,7 @@ import DashboardPage from "./dashboard/page";
 import LoginPage from "./login/page";
 import SettingsPage from "./dashboard/settings/page";
 import manifest from "./manifest";
-import HomePage from "./page";
-import TemplatesPage from "./templates/page";
+import HomePage from "./editor/page";
 
 describe("local app pages and adapters", () => {
   beforeEach(() => {
@@ -83,7 +74,6 @@ describe("local app pages and adapters", () => {
     vi.unstubAllGlobals();
     mocks.dashboardAdapter = null;
     mocks.homeAdapter = null;
-    mocks.templateAdapter = null;
     mocks.buttons = [];
     mocks.userState = {
       fetchUser: vi.fn(),
@@ -188,32 +178,6 @@ describe("local app pages and adapters", () => {
     expect(fetchMock).toHaveBeenCalledWith("/api/subscriptions/sub%201", expect.objectContaining({ method: "PUT" }));
   });
 
-  it("connects the template library adapter to local template routes", async () => {
-    const fetchMock = vi.fn(async () => new Response("{}", { status: 200 }));
-    vi.stubGlobal("fetch", fetchMock);
-    mocks.readJsonResponse
-      .mockResolvedValueOnce({ templates: [{ id: "tpl-1" }] })
-      .mockResolvedValueOnce({ template: { kind: "yaml", config: {} } })
-      .mockResolvedValueOnce({})
-      .mockResolvedValueOnce({});
-
-    renderToStaticMarkup(React.createElement(TemplatesPage));
-    const adapter = mocks.templateAdapter;
-
-    await expect(adapter.loadTemplates("my")).resolves.toEqual([{ id: "tpl-1" }]);
-    fetchMock.mockResolvedValueOnce(new Response("", { status: 404 }));
-    await expect(adapter.loadTemplateDetail("missing")).resolves.toBeNull();
-    fetchMock.mockResolvedValueOnce(new Response("{}", { status: 200 }));
-    await expect(adapter.loadTemplateDetail("tpl 1")).resolves.toEqual({ kind: "yaml", config: {} });
-    await expect(adapter.uploadTemplate({ name: "Tpl" })).resolves.toBeUndefined();
-    await expect(adapter.deleteTemplate("tpl 1")).resolves.toBeUndefined();
-
-    expect(fetchMock).toHaveBeenCalledWith("/api/templates?type=my", { cache: "no-store" });
-    expect(fetchMock).toHaveBeenCalledWith("/api/templates/tpl%201", { cache: "no-store" });
-    expect(fetchMock).toHaveBeenCalledWith("/api/templates", expect.objectContaining({ method: "POST" }));
-    expect(fetchMock).toHaveBeenCalledWith("/api/templates?id=tpl%201", { method: "DELETE" });
-  });
-
   it("renders local settings for anonymous and authenticated states", async () => {
     let html = renderToStaticMarkup(React.createElement(SettingsPage));
     expect(html).toContain("未登录");
@@ -231,7 +195,7 @@ describe("local app pages and adapters", () => {
     };
     html = renderToStaticMarkup(React.createElement(SettingsPage));
     expect(html).toContain("admin");
-    expect(html).toContain("2 / 9999");
+    expect(html).not.toContain("订阅容量");
     const logoutButton = mocks.buttons.find((button: any) => button.variant === "destructive");
     expect(logoutButton).toMatchObject({ disabled: false });
     logoutButton.onClick();

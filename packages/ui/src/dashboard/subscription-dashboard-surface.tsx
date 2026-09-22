@@ -30,7 +30,6 @@ import {
   resolveAutoUpdateIntervalPolicy,
   type AutoUpdateIntervalPolicyOverride,
 } from "@subboost/core/subscription/auto-update-interval";
-import { DashboardStatsCards } from "@subboost/ui/dashboard/dashboard-stats-cards";
 import { formatDashboardDate, formatIntervalLabel } from "@subboost/ui/dashboard/dashboard-format";
 import { buildRefreshSubscriptionSuccessToast } from "@subboost/ui/dashboard/dashboard-refresh-toast";
 import { SubscriptionSettingsDialog } from "@subboost/ui/dashboard/subscription-settings-dialog";
@@ -353,8 +352,8 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
   if (userLoading) return <DashboardSkeleton />;
   if (!user) return <LoginPrompt loginHref={adapter.loginHref ?? "/login"} />;
 
-  const newSubscriptionHref = adapter.newSubscriptionHref ?? "/?newSubscription=1";
-  const editSubscriptionHref = adapter.editSubscriptionHref ?? ((sub: Subscription) => `/?editSubscriptionId=${sub.id}`);
+  const newSubscriptionHref = adapter.newSubscriptionHref ?? "/editor?newSubscription=1";
+  const editSubscriptionHref = adapter.editSubscriptionHref ?? ((sub: Subscription) => `/editor?editSubscriptionId=${sub.id}`);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -377,8 +376,6 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
       </div>
 
       {adapter.beforeStatsSlot}
-
-      <DashboardStatsCards subscriptionCount={subscriptions.length} user={user} />
 
       <Card>
         <CardHeader>
@@ -491,7 +488,7 @@ function LoginPrompt({ loginHref }: { loginHref: string }) {
       <div className="max-w-md mx-auto space-y-4">
         <Shield className="h-16 w-16 mx-auto text-white/50" />
         <h1 className="text-2xl font-bold">请先登录</h1>
-        <p className="text-white/50">登录后可以管理您的订阅和模板</p>
+        <p className="text-white/50">登录后可以管理您的订阅</p>
         <Link href={loginHref}>
           <Button size="lg">登录</Button>
         </Link>

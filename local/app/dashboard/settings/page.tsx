@@ -24,7 +24,7 @@ export default function SettingsPage() {
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold mb-1">账户设置</h1>
-          <p className="text-white/50">本地管理员、订阅容量和运行端点</p>
+          <p className="text-white/50">本地管理员和运行端点</p>
         </div>
       </div>
 
@@ -40,10 +40,6 @@ export default function SettingsPage() {
             <div>
               <p className="text-xs text-white/40">用户名</p>
               <p className="mt-1 font-medium">{user?.username || "未登录"}</p>
-            </div>
-            <div>
-              <p className="text-xs text-white/40">已保存订阅</p>
-              <p className="mt-1 font-medium">{user ? `${user.subscriptionCount} / ${user.quota.maxSubscriptions}` : "-"}</p>
             </div>
             <Button variant="destructive" className="gap-2" onClick={() => void handleLogout()} disabled={!user}>
               <LogOut className="h-4 w-4" />

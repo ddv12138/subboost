@@ -113,21 +113,6 @@ export function UserMenu({ privilegedMenuItem }: { privilegedMenuItem?: AccountM
                   <p className="text-xs text-white/40 truncate">@{user.username}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 mt-3 flex-wrap">
-                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/5 text-xs text-indigo-400">
-                  <Shield className="h-3 w-3" />
-                  <span>Lv.{user.trustLevel}</span>
-                </div>
-                {user.isAdmin && !user.isBanned && (
-                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-500/20 text-xs text-indigo-400">
-                    <Shield className="h-3 w-3" />
-                    <span>管理员</span>
-                  </div>
-                )}
-                <div className="text-xs text-white/40">
-                  {user.subscriptionCount}/{user.quota.maxSubscriptions} 订阅
-                </div>
-              </div>
             </div>
 
             {/* Menu Items */}

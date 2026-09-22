@@ -144,8 +144,6 @@ export function Footer({
   const hasUser = Boolean(user);
   const visibleFeatureLinks = filterLinks(
     [
-      { href: "/", label: "配置生成器" },
-      { href: "/templates", label: "模板库", authOnly: true },
       { href: "/dashboard", label: "我的订阅", authOnly: true },
     ],
     hasUser

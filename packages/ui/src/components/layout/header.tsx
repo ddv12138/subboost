@@ -5,9 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
-  Home,
   LayoutDashboard,
-  Library,
   HelpCircle,
   Menu,
   X,
@@ -38,11 +36,7 @@ type NavItem = {
   authOnly?: boolean;
 };
 
-const sharedNavItems: NavItem[] = [
-  { href: "/", label: "首页", icon: Home },
-  { href: "/dashboard", label: "我的订阅", icon: LayoutDashboard, authOnly: true },
-  { href: "/templates", label: "模板库", icon: Library, authOnly: true },
-];
+const sharedNavItems: NavItem[] = [{ href: "/dashboard", label: "我的订阅", icon: LayoutDashboard, authOnly: true }];
 
 const defaultNavItems: NavItem[] = [
   ...sharedNavItems,
@@ -124,7 +118,7 @@ export function Header({
   };
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-xl bg-black/50 border-b border-white/5">
+  <header className="sticky top-0 z-50 border-b border-neutral-200 bg-white">
       <div className="w-full max-w-[clamp(1200px,95vw,2400px)] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -137,7 +131,7 @@ export function Header({
                 height={36}
                 className="rounded-xl shadow-lg shadow-blue-500/25 transition-shadow group-hover:shadow-blue-500/40"
               />
-              <span className="hidden text-xl font-bold leading-none bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent sm:inline-flex">
+              <span className="hidden text-xl font-bold leading-none text-neutral-950 sm:inline-flex">
                 SubBoost
               </span>
             </Link>
@@ -148,7 +142,7 @@ export function Header({
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center rounded-full border border-white/10 bg-white/[0.04] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+          <nav className="hidden md:flex items-center gap-1">
             {visibleNavItems.map((item) => {
               const isActive = isNavItemActive(pathname, item.href);
               return (
@@ -156,13 +150,13 @@ export function Header({
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "inline-flex items-center gap-2 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium transition-all duration-200",
+                    "inline-flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors",
                     isActive
-                      ? "border border-white/10 bg-white/10 text-white shadow-[0_10px_30px_rgba(15,23,42,0.22)]"
-                      : "text-white/60 hover:bg-white/5 hover:text-white"
+                      ? "bg-neutral-100 text-neutral-950"
+                      : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950"
                   )}
                 >
-                  <item.icon className={cn("h-3.5 w-3.5", isActive ? "text-indigo-300" : "text-white/45")} />
+                  <item.icon className={cn("h-3.5 w-3.5", isActive ? "text-neutral-950" : "text-neutral-500")} />
                   {item.label}
                 </Link>
               );

@@ -3,13 +3,13 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bot, Eye, Home, Library, Settings2, User, type LucideIcon } from "lucide-react";
+import { Bot, Eye, Settings2, User, type LucideIcon } from "lucide-react";
 import { cn } from "@subboost/ui/lib/utils";
 import { zeroRightClassName } from "react-remove-scroll-bar";
 import { useUserStore } from "@subboost/ui/store/user-store";
 
 type MobileNavItem = {
-  id: "config" | "preview" | "ai" | "dashboard" | "home" | "templates";
+  id: "config" | "preview" | "ai" | "dashboard";
   href: string;
   label: string;
   icon: LucideIcon;
@@ -24,11 +24,7 @@ const defaultMobileNavItems: MobileNavItem[] = [
   { id: "dashboard", href: "/dashboard", label: "我的", icon: User, authOnly: true },
 ];
 
-const localMobileNavItems: MobileNavItem[] = [
-  { id: "home", href: "/", label: "首页", icon: Home },
-  { id: "dashboard", href: "/dashboard", label: "订阅", icon: User, authOnly: true },
-  { id: "templates", href: "/templates", label: "模板", icon: Library, authOnly: true },
-];
+const localMobileNavItems: MobileNavItem[] = [{ id: "dashboard", href: "/dashboard", label: "订阅", icon: User, authOnly: true }];
 
 export function MobileNav({ mode = "default" }: { mode?: "default" | "local" }) {
   const pathname = usePathname();
@@ -51,7 +47,7 @@ export function MobileNav({ mode = "default" }: { mode?: "default" | "local" }) 
   return (
     <nav
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-white/5 bg-black/50 backdrop-blur-xl",
+        "fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-neutral-200 bg-white",
         zeroRightClassName
       )}
     >
@@ -79,7 +75,7 @@ export function MobileNav({ mode = "default" }: { mode?: "default" | "local" }) 
               }}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 w-full h-full transition-colors",
-                isActive ? "text-indigo-400" : "text-white/40 hover:text-white/60"
+                isActive ? "text-neutral-950" : "text-neutral-500 hover:text-neutral-950"
               )}
             >
               <item.icon className="h-5 w-5" />

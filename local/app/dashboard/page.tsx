@@ -26,8 +26,7 @@ const localDashboardAdapter: DashboardSurfaceAdapter = {
     return data.subscription;
   },
   loginHref: "/login",
-  newSubscriptionHref: "/?newSubscription=1",
-  templatesHref: "/templates",
+  newSubscriptionHref: "/editor?newSubscription=1",
   settingsHref: "/dashboard/settings",
   settingsDescription: "查看本地管理员和运行状态",
   autoUpdateIntervalPolicy: LOCAL_AUTO_UPDATE_POLICY,

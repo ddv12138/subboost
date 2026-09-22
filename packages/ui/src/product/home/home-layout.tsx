@@ -108,7 +108,7 @@ export function HomeLayout({
   noticeSlot,
   renderAnnouncement,
   saveRequirementSlot,
-  templateUploadHref = "/templates?upload=1",
+  templateUploadHref = null,
   onTemplateUploadOpen,
 }: Props) {
   const [configTab, setConfigTab] = React.useState<"quick" | "advanced">(editSubscriptionId ? "advanced" : "quick");
