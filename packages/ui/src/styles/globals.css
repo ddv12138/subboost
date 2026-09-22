@@ -121,16 +121,15 @@
   background: #fff;
 }
 
-/* The self-hosted app deliberately uses a plain monochrome theme. Most product
-   surfaces are shared components with existing white-on-dark utility classes. */
-.local-minimal [class~="text-white"] { color: #171717 !important; }
+/* Transitional compatibility for legacy product surfaces. Interactive base
+   components use explicit neutral classes; this only keeps older content
+   readable while those surfaces are gradually simplified. */
+.local-minimal [class~="text-white"]:not(button) { color: #171717 !important; }
 .local-minimal [class*="text-white/"] { color: #525252 !important; }
-.local-minimal [class*="bg-black/"] { background-color: #fff !important; }
 .local-minimal [class*="bg-white/"] { background-color: #f5f5f5 !important; }
 .local-minimal [class*="border-white/"] { border-color: #e5e5e5 !important; }
 .local-minimal [class*="text-indigo"] { color: #262626 !important; }
-.local-minimal button.bg-neutral-950,
-.local-minimal button.bg-neutral-950 * { color: #fff !important; }
+
 
 @layer components {
   /* 毛玻璃卡片 */

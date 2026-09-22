@@ -196,7 +196,7 @@ describe("HomeLayout", () => {
       authChecked: false,
       user: null,
     });
-    expect(html).toContain("SubBoost");
+    expect(html).not.toContain("Clash 订阅转换、生成与管理服务");
     expect(html).toContain("quick-mode");
     expect(html).toContain("advanced-mode");
     expect(html).toContain("visual-graph");

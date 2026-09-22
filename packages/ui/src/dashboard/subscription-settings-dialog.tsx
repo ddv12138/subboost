@@ -80,7 +80,7 @@ export function SubscriptionSettingsDialog({
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <p className="text-sm text-white/70">更新时智能匹配节点</p>
+                <p className="text-sm text-neutral-700">更新时智能匹配节点</p>
                 <SmartNodeMatchingHelp enabled={smartNodeMatchingEnabled} />
               </div>
             </div>
@@ -89,8 +89,8 @@ export function SubscriptionSettingsDialog({
 
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-sm text-white/70">启用自动更新</p>
-              <p className="text-xs text-white/40 mt-1">开启后服务器会按间隔刷新缓存</p>
+              <p className="text-sm text-neutral-700">启用自动更新</p>
+              <p className="mt-1 text-xs text-neutral-500">开启后服务器会按间隔刷新缓存</p>
             </div>
             <Switch checked={autoUpdateEnabled} onCheckedChange={setAutoUpdateEnabled} />
           </div>

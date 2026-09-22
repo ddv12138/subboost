@@ -72,12 +72,12 @@ export function UserMenu({ privilegedMenuItem, minimal = false }: { privilegedMe
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/5 transition-colors"
+        className="flex items-center gap-2 rounded-md px-2 py-1.5 text-neutral-800 hover:bg-neutral-100 transition-colors"
       >
         <SafeImage
           src={user.avatarUrl}
           alt={user.name || user.username}
-          className="h-8 w-8 rounded-full border border-white/20"
+          className="h-8 w-8 rounded-full border border-neutral-200"
           fallback={
             <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
               <UserIcon className="h-4 w-4 text-white" />
@@ -85,7 +85,7 @@ export function UserMenu({ privilegedMenuItem, minimal = false }: { privilegedMe
           }
         />
         <span className="text-sm font-medium hidden sm:block">{user.name || user.username}</span>
-        <ChevronDown className={`h-4 w-4 text-white/50 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+        <ChevronDown className={`h-4 w-4 text-neutral-500 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
       {isOpen && (
@@ -94,9 +94,9 @@ export function UserMenu({ privilegedMenuItem, minimal = false }: { privilegedMe
             className="fixed inset-0 z-40" 
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-[#1a1a1a] border border-white/10 shadow-xl py-2 z-50">
+          <div className="absolute right-0 mt-2 w-56 rounded-md border border-neutral-200 bg-white py-1 shadow-lg z-50">
             {/* User Info Header */}
-            <div className="px-4 py-3 border-b border-white/10">
+            {!minimal && <div className="px-4 py-3 border-b border-neutral-200">
               <div className="flex items-center gap-3">
                 <SafeImage
                   src={user.avatarUrl}
@@ -113,7 +113,7 @@ export function UserMenu({ privilegedMenuItem, minimal = false }: { privilegedMe
                   <p className="text-xs text-white/40 truncate">@{user.username}</p>
                 </div>
               </div>
-            </div>
+            </div>}
 
             {/* Menu Items */}
               {!minimal && <div className="flex items-center gap-2 mt-3 flex-wrap">
@@ -138,18 +138,18 @@ export function UserMenu({ privilegedMenuItem, minimal = false }: { privilegedMe
                   {privilegedMenuItem.label}
                 </Link>
               )}
-              <Link
+              {!minimal && <Link
                 href="/dashboard"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-2 text-sm text-white/60 hover:bg-white/5 hover:text-white transition-colors"
+                className="flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950 transition-colors"
               >
                 <LayoutDashboard className="h-4 w-4" />
                 我的订阅
-              </Link>
+              </Link>}
               <Link
                 href="/dashboard/settings"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-2 text-sm text-white/60 hover:bg-white/5 hover:text-white transition-colors"
+                className="flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950 transition-colors"
               >
                 <Settings className="h-4 w-4" />
                 账户设置
@@ -157,10 +157,10 @@ export function UserMenu({ privilegedMenuItem, minimal = false }: { privilegedMe
             </div>
 
             {/* Logout */}
-            <div className="border-t border-white/10 pt-1">
+            <div className="border-t border-neutral-200 pt-1">
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-400 hover:bg-white/5 hover:text-red-300 transition-colors"
+                className="flex w-full items-center gap-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
               >
                 <LogOut className="h-4 w-4" />
                 退出登录
