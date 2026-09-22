@@ -146,8 +146,8 @@ describe("shared layout components", () => {
 
     mocks.userState = { user: { id: "user-1" } };
     html = renderToStaticMarkup(React.createElement(MobileNav, { mode: "local" }));
-    expect(html).toContain("首页");
     expect(html).toContain("订阅");
-    expect(html).toContain("模板");
+    expect(html).not.toContain("首页");
+    expect(html).not.toContain("模板");
   });
 });

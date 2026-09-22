@@ -5,7 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
+  Home,
   LayoutDashboard,
+  Library,
   HelpCircle,
   Menu,
   X,
@@ -36,16 +38,18 @@ type NavItem = {
   authOnly?: boolean;
 };
 
-const sharedNavItems: NavItem[] = [{ href: "/dashboard", label: "我的订阅", icon: LayoutDashboard, authOnly: true }];
+const sharedNavItems: NavItem[] = [
+  { href: "/", label: "首页", icon: Home },
+  { href: "/dashboard", label: "我的订阅", icon: LayoutDashboard, authOnly: true },
+  { href: "/templates", label: "模板库", icon: Library, authOnly: true },
+];
 
 const defaultNavItems: NavItem[] = [
   ...sharedNavItems,
   { href: "/faq", label: "FAQ", icon: HelpCircle },
 ];
 
-const localNavItems: NavItem[] = [
-  ...sharedNavItems,
-];
+const localNavItems: NavItem[] = [{ href: "/dashboard", label: "我的订阅", icon: LayoutDashboard, authOnly: true }];
 
 function isNavItemActive(pathname: string, href: string): boolean {
   if (href === "/") return pathname === "/";
@@ -180,7 +184,7 @@ export function Header({
           {/* Right Side Actions */}
           <div className="flex items-center gap-2">
             {/* User Menu */}
-            <UserMenu privilegedMenuItem={privilegedMenuItem} />
+            <UserMenu privilegedMenuItem={privilegedMenuItem} {...(mode === "local" ? { minimal: true } : {})} />
 
             {/* Mobile Menu Button */}
             <button

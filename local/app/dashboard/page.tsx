@@ -26,6 +26,7 @@ const localDashboardAdapter: DashboardSurfaceAdapter = {
     return data.subscription;
   },
   loginHref: "/login",
+  showStats: false,
   newSubscriptionHref: "/editor?newSubscription=1",
   settingsHref: "/dashboard/settings",
   settingsDescription: "查看本地管理员和运行状态",

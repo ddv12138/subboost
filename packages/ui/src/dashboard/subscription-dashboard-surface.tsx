@@ -32,6 +32,7 @@ import {
 } from "@subboost/core/subscription/auto-update-interval";
 import { formatDashboardDate, formatIntervalLabel } from "@subboost/ui/dashboard/dashboard-format";
 import { buildRefreshSubscriptionSuccessToast } from "@subboost/ui/dashboard/dashboard-refresh-toast";
+import { DashboardStatsCards } from "@subboost/ui/dashboard/dashboard-stats-cards";
 import { SubscriptionSettingsDialog } from "@subboost/ui/dashboard/subscription-settings-dialog";
 import type { RefreshSubscriptionResponse, Subscription } from "@subboost/ui/dashboard/dashboard-types";
 
@@ -60,6 +61,7 @@ export type DashboardSurfaceAdapter = {
   renderHeaderActions?: (context: { user: User }) => React.ReactNode;
   renderExtraQuickActions?: (context: { user: User }) => React.ReactNode;
   beforeStatsSlot?: React.ReactNode;
+  showStats?: boolean;
 };
 
 type Props = {
@@ -376,6 +378,8 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
       </div>
 
       {adapter.beforeStatsSlot}
+
+      {adapter.showStats !== false && <DashboardStatsCards subscriptionCount={subscriptions.length} user={user} />}
 
       <Card>
         <CardHeader>

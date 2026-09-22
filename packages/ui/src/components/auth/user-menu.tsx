@@ -22,7 +22,7 @@ export type AccountMenuItem = {
   label: string;
 };
 
-export function UserMenu({ privilegedMenuItem }: { privilegedMenuItem?: AccountMenuItem }) {
+export function UserMenu({ privilegedMenuItem, minimal = false }: { privilegedMenuItem?: AccountMenuItem; minimal?: boolean }) {
   const { user, isLoading: userLoading, fetchUser, logout: userLogout } = useUserStore();
   const [isOpen, setIsOpen] = React.useState(false);
   const menuRef = React.useRef<HTMLDivElement>(null);
@@ -116,7 +116,18 @@ export function UserMenu({ privilegedMenuItem }: { privilegedMenuItem?: AccountM
             </div>
 
             {/* Menu Items */}
-            <div className="py-1">
+              {!minimal && <div className="flex items-center gap-2 mt-3 flex-wrap">
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/5 text-xs text-indigo-400">
+                  <Shield className="h-3 w-3" /><span>Lv.{user.trustLevel}</span>
+                </div>
+                {user.isAdmin && !user.isBanned && (
+                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-500/20 text-xs text-indigo-400">
+                    <Shield className="h-3 w-3" /><span>管理员</span>
+                  </div>
+                )}
+                <div className="text-xs text-white/40">{user.subscriptionCount}/{user.quota.maxSubscriptions} 订阅</div>
+              </div>}
+              <div className="py-1">
               {privilegedMenuItem && user.isAdmin && !user.isBanned && (
                 <Link
                   href={privilegedMenuItem.href}

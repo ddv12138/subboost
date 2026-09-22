@@ -3,13 +3,13 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bot, Eye, Settings2, User, type LucideIcon } from "lucide-react";
+import { Bot, Eye, Home, Library, Settings2, User, type LucideIcon } from "lucide-react";
 import { cn } from "@subboost/ui/lib/utils";
 import { zeroRightClassName } from "react-remove-scroll-bar";
 import { useUserStore } from "@subboost/ui/store/user-store";
 
 type MobileNavItem = {
-  id: "config" | "preview" | "ai" | "dashboard";
+  id: "config" | "preview" | "ai" | "dashboard" | "home" | "templates";
   href: string;
   label: string;
   icon: LucideIcon;
@@ -47,7 +47,9 @@ export function MobileNav({ mode = "default" }: { mode?: "default" | "local" }) 
   return (
     <nav
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-neutral-200 bg-white",
+        mode === "local"
+          ? "fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-neutral-200 bg-white"
+          : "fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-white/5 bg-black/50 backdrop-blur-xl",
         zeroRightClassName
       )}
     >
@@ -75,7 +77,9 @@ export function MobileNav({ mode = "default" }: { mode?: "default" | "local" }) 
               }}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 w-full h-full transition-colors",
-                isActive ? "text-neutral-950" : "text-neutral-500 hover:text-neutral-950"
+                mode === "local"
+                  ? (isActive ? "text-neutral-950" : "text-neutral-500 hover:text-neutral-950")
+                  : (isActive ? "text-indigo-400" : "text-white/40 hover:text-white/60")
               )}
             >
               <item.icon className="h-5 w-5" />
