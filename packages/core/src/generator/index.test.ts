@@ -259,6 +259,7 @@ describe("generateClashConfig", () => {
           server: "trojan.example.com",
           port: 443,
           password: "secret",
+          fingerprint: "22:43:9F:9E:61:A7:08:0E:96:90:95:F8:D8:A8:16:D7:FD:BE:0A:4C:AF:C7:75:E0:53:45:CC:01:09:13:86:40",
         } as ParsedNode,
         {
           name: "AnyTLS",
@@ -301,7 +302,10 @@ describe("generateClashConfig", () => {
 
     expect(plain).not.toHaveProperty("client-fingerprint");
     expect(plain).not.toHaveProperty("dialer-proxy");
-    expect(trojan).toMatchObject({ "client-fingerprint": "chrome" });
+    expect(trojan).toMatchObject({
+      "client-fingerprint": "chrome",
+      fingerprint: "22:43:9F:9E:61:A7:08:0E:96:90:95:F8:D8:A8:16:D7:FD:BE:0A:4C:AF:C7:75:E0:53:45:CC:01:09:13:86:40",
+    });
     expect(anytls).toMatchObject({ "client-fingerprint": "chrome" });
     expect(preset).toMatchObject({ "client-fingerprint": "safari" });
     expect(config["proxy-groups"]?.find((group) => group.name === "Disabled")).toBeUndefined();

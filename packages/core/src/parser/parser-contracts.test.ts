@@ -234,7 +234,7 @@ Direct Policy = direct
 
   it("parses Trojan WebSocket upgrade fields and early data", () => {
     const node = mustParseNode(
-      "trojan://pa%3Ass@trojan.example.com:443?type=httpupgrade&path=%2Ftrojan%3Fed%3D2048&host=cdn.example.com&allow-insecure=true&fp=chrome#Trojan"
+      "trojan://pa%3Ass@trojan.example.com:443?type=httpupgrade&path=%2Ftrojan%3Fed%3D2048&host=cdn.example.com&allow-insecure=true&fp=chrome&hpkp=22:43:9F:9E:61:A7:08:0E:96:90:95:F8:D8:A8:16:D7:FD:BE:0A:4C:AF:C7:75:E0:53:45:CC:01:09:13:86:40#Trojan"
     );
 
     expect(node).toMatchObject({
@@ -248,6 +248,7 @@ Direct Policy = direct
       network: "ws",
       "skip-cert-verify": true,
       "client-fingerprint": "chrome",
+      fingerprint: "22:43:9F:9E:61:A7:08:0E:96:90:95:F8:D8:A8:16:D7:FD:BE:0A:4C:AF:C7:75:E0:53:45:CC:01:09:13:86:40",
       "ws-opts": {
         path: "/trojan",
         headers: { Host: "cdn.example.com" },

@@ -64,6 +64,8 @@ export function parseTrojan(uri: string): TrojanNode {
     parseBoolish(params.get("insecure"));
   const isHttpUpgrade = type === "httpupgrade";
   const echRaw = params.get("ech");
+  // 部分 Trojan 订阅使用 hpkp 传递服务端证书指纹；Mihomo 对应字段为 fingerprint。
+  const certificateFingerprint = params.get("hpkp")?.trim();
 
   const node: TrojanNode = {
     name,
@@ -93,6 +95,10 @@ export function parseTrojan(uri: string): TrojanNode {
 
   if (fp) {
     node["client-fingerprint"] = fp;
+  }
+
+  if (certificateFingerprint) {
+    (node as Record<string, unknown>).fingerprint = certificateFingerprint;
   }
 
   if (alpn) {

@@ -149,6 +149,16 @@ function ruleApplies(rule: AliasRule, type: string): boolean {
   return !rule.types || rule.types.includes(type);
 }
 
+function isCertificateFingerprint(value: unknown): boolean {
+  if (typeof value !== "string") return false;
+  const compact = value
+    .trim()
+    .replace(/^sha256\s+fingerprint\s*=\s*/i, "")
+    .replace(/^sha256[:=]\s*/i, "")
+    .replace(/:/g, "");
+  return /^[A-Fa-f0-9]{64}$/.test(compact);
+}
+
 function normalizeTlsVerification(value: unknown): boolean | undefined {
   if (typeof value === "boolean") return !value;
   if (typeof value !== "string") return undefined;
@@ -187,9 +197,19 @@ export function canonicalizeParsedNode<T extends ParsedNode | Record<string, unk
   if (!isRecord(node)) return node;
   const type = typeof node.type === "string" ? node.type.trim().toLowerCase() : "";
   const out: Record<string, unknown> = { ...node };
+  const certificateFingerprint = isCertificateFingerprint(out.fingerprint) ? out.fingerprint : undefined;
 
   for (const rule of PROTOCOL_FIELD_ALIAS_RULES) {
     if (!ruleApplies(rule, type)) continue;
+    // `fingerprint=chrome` 是 uTLS 指纹别名；64 位 SHA-256 值则是证书指纹，
+    // 必须保留在 fingerprint，不能改写为 client-fingerprint。
+    if (
+      rule.canonical[0] === "client-fingerprint" &&
+      !hasValue(out["client-fingerprint"]) &&
+      isCertificateFingerprint(out.fingerprint)
+    ) {
+      continue;
+    }
     const value = pickAliasValue(out, [rule.canonical, ...rule.aliases]);
     if (!hasValue(value)) continue;
     setPath(out, rule.canonical, value);
@@ -197,6 +217,10 @@ export function canonicalizeParsedNode<T extends ParsedNode | Record<string, unk
       if (!pathEquals(alias, rule.canonical)) deletePath(out, alias);
     }
   }
+
+  // A certificate pin may accompany a uTLS client fingerprint (for example,
+  // `fp=chrome&hpkp=<sha256>` in a Trojan URI), so restore it if alias cleanup removed it.
+  if (certificateFingerprint !== undefined) out.fingerprint = certificateFingerprint;
 
   canonicalizeSkipCertVerify(out);
 
