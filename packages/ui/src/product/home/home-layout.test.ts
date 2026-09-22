@@ -30,7 +30,6 @@ const baseUser: User = {
   saveRequirementSatisfiedAt: "2026-01-01T00:00:00.000Z",
   createdAt: "2026-01-01T00:00:00.000Z",
   subscriptionCount: 1,
-  templateCount: 0,
   quota: {
     maxSubscriptions: 5,
     maxNodesPerSubscription: 100,

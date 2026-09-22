@@ -16,7 +16,6 @@ const localDashboardAdapter: DashboardSurfaceAdapter = {
     return data.subscription;
   },
   loginHref: "/login",
-  showStats: false,
   newSubscriptionHref: "/editor?newSubscription=1",
   autoUpdateIntervalPolicy: LOCAL_AUTO_UPDATE_POLICY,
   fetchSubscriptions: async () => {

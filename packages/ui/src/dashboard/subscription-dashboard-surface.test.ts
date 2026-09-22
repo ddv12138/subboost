@@ -87,12 +87,6 @@ vi.mock("@subboost/core/subscription/auto-update-interval", () => ({
       typeof override?.requireIntegerHours === "boolean" ? override.requireIntegerHours : true,
   }),
 }));
-vi.mock("@subboost/ui/dashboard/dashboard-stats-cards", () => ({
-  DashboardStatsCards: (props: any) => {
-    mocks.captures.stats = props;
-    return null;
-  },
-}));
 vi.mock("@subboost/ui/dashboard/dashboard-format", () => ({
   formatDashboardDate: (value: string) => `date:${value}`,
   formatIntervalLabel: (seconds: number) => `${seconds / 3600} 小时`,
@@ -150,7 +144,6 @@ function createAdapter(overrides: Partial<DashboardSurfaceAdapter> = {}): Dashbo
   return {
     loginHref: "/login",
     newSubscriptionHref: "/new",
-    templatesHref: "/templates",
     settingsHref: "/settings",
     settingsTitle: "设置",
     settingsDescription: "账户设置",
@@ -162,7 +155,6 @@ function createAdapter(overrides: Partial<DashboardSurfaceAdapter> = {}): Dashbo
     renderAnnouncement: () => "announcement",
     renderHeaderActions: () => "header-action",
     renderExtraQuickActions: () => "extra-action",
-    beforeStatsSlot: "before-stats",
     ...overrides,
   };
 }
@@ -174,7 +166,6 @@ function renderSurface(adapter = createAdapter(), overrides: Record<number, unkn
   stateMock.setters = [];
   stateMock.runEffects = options.runEffects ?? false;
   mocks.captures.buttons = [];
-  mocks.captures.stats = undefined;
   mocks.captures.settingsDialog = undefined;
   try {
     const html = renderToStaticMarkup(React.createElement(SubscriptionDashboardSurface, { adapter }));
@@ -252,10 +243,9 @@ describe("SubscriptionDashboardSurface", () => {
     vi.unstubAllGlobals();
   });
 
-  it("renders loading, login prompt, empty state, stats, and quick actions", () => {
+  it("renders loading, login prompt, empty state, and quick actions", () => {
     mocks.userStore = { user: null, isLoading: true, fetchUser: vi.fn() };
     renderSurface();
-    expect(mocks.captures.stats).toBeUndefined();
 
     mocks.userStore = { user: null, isLoading: false, fetchUser: vi.fn() };
     expect(renderSurface().html).toContain("请先登录");
@@ -265,7 +255,6 @@ describe("SubscriptionDashboardSurface", () => {
     expect(html).toContain("暂无订阅");
     expect(html).toContain("announcement");
     expect(html).toContain("extra-action");
-    expect(mocks.captures.stats).toEqual({ subscriptionCount: 0, user });
     expect(mocks.captures.settingsDialog).toEqual(expect.objectContaining({ open: false, userIsAdmin: false }));
   });
 

@@ -616,7 +616,7 @@ export function SourcesSection() {
                     value={expandedSource.content}
                     onChange={(e) => updateSource(expandedSource.id, e.target.value)}
                     placeholder={sourceTypeInfo[expandedSource.type].placeholder}
-                    className="min-h-72 max-h-[50vh] resize-y text-xs font-mono"
+                    className="h-48 min-h-48 max-h-[40vh] resize-y text-xs font-mono"
                   />
                 )}
               </div>

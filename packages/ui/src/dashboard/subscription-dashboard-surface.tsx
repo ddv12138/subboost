@@ -32,7 +32,6 @@ import {
 } from "@subboost/core/subscription/auto-update-interval";
 import { formatDashboardDate, formatIntervalLabel } from "@subboost/ui/dashboard/dashboard-format";
 import { buildRefreshSubscriptionSuccessToast } from "@subboost/ui/dashboard/dashboard-refresh-toast";
-import { DashboardStatsCards } from "@subboost/ui/dashboard/dashboard-stats-cards";
 import { SubscriptionSettingsDialog } from "@subboost/ui/dashboard/subscription-settings-dialog";
 import type { RefreshSubscriptionResponse, Subscription } from "@subboost/ui/dashboard/dashboard-types";
 
@@ -45,7 +44,6 @@ type UpdateSettingsPayload = {
 export type DashboardSurfaceAdapter = {
   loginHref?: string;
   newSubscriptionHref?: string;
-  templatesHref?: string | null;
   settingsHref?: string | null;
   settingsTitle?: string;
   settingsDescription?: string;
@@ -59,8 +57,6 @@ export type DashboardSurfaceAdapter = {
   renderAnnouncement?: (context: { user: User }) => React.ReactNode;
   renderHeaderActions?: (context: { user: User }) => React.ReactNode;
   renderExtraQuickActions?: (context: { user: User }) => React.ReactNode;
-  beforeStatsSlot?: React.ReactNode;
-  showStats?: boolean;
 };
 
 type Props = {
@@ -330,10 +326,6 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
         </div>
       </div>
 
-      {adapter.beforeStatsSlot}
-
-      {adapter.showStats !== false && <DashboardStatsCards subscriptionCount={subscriptions.length} user={user} />}
-
       <Card>
         <CardHeader>
           <CardTitle>订阅列表</CardTitle>
@@ -397,16 +389,6 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
       />
 
       <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        {adapter.templatesHref && (
-          <QuickActionCard
-            href={adapter.templatesHref}
-            icon={<FileCode className="h-6 w-6" />}
-            iconClassName="bg-purple-500/20 text-purple-500"
-            title="我的模板"
-            description="管理和分享您的配置模板"
-          />
-        )}
-
         {adapter.settingsHref && (
           <QuickActionCard
             href={adapter.settingsHref}

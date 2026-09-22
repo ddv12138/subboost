@@ -168,7 +168,7 @@ export function InputSourceEditorDialog({
                   value={source.content}
                   onChange={(e) => onUpdateContent(source.id, e.target.value)}
                   placeholder={sourceTypeInfo[source.type].placeholder}
-                  className="min-h-72 max-h-[50vh] resize-y text-xs font-mono"
+                  className="h-48 min-h-48 max-h-[40vh] resize-y text-xs font-mono"
                 />
               )}
             </div>

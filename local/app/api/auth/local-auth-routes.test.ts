@@ -11,9 +11,6 @@ const mocks = vi.hoisted(() => ({
       findUnique: vi.fn(),
       update: vi.fn(),
     },
-    localTemplate: {
-      count: vi.fn(),
-    },
     subscription: {
       count: vi.fn(),
     },
@@ -117,7 +114,6 @@ describe("local auth and health routes", () => {
     mocks.isSetupRequired.mockResolvedValueOnce(false).mockResolvedValueOnce(true);
     mocks.getCurrentAdmin.mockResolvedValueOnce({ id: "admin-1", username: "admin" }).mockResolvedValueOnce(null);
     mocks.prisma.subscription.count.mockResolvedValueOnce(2);
-    mocks.prisma.localTemplate.count.mockResolvedValueOnce(3);
 
     let response = await GET();
     let payload = await response.json();
@@ -128,7 +124,6 @@ describe("local auth and health routes", () => {
         id: "admin-1",
         username: "admin",
         subscriptionCount: 2,
-        templateCount: 3,
         quota: { maxSubscriptions: 9999 },
       },
     });

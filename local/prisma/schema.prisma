@@ -16,22 +16,6 @@ model LocalAdmin {
   lastLoginAt  DateTime?
 
   subscriptions Subscription[]
-  templates      LocalTemplate[]
-}
-
-model LocalTemplate {
-  id              String   @id @default(cuid())
-  ownerId         String
-  name            String
-  description     String?
-  encryptedConfig String   @db.Text
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  owner LocalAdmin @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-
-  @@index([ownerId])
-  @@index([updatedAt])
 }
 
 model Subscription {

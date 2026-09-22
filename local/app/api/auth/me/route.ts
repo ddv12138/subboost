@@ -4,12 +4,9 @@ import { prisma } from "@local/lib/prisma";
 
 export async function GET() {
   const [setupRequired, admin] = await Promise.all([isSetupRequired(), getCurrentAdmin()]);
-  const [subscriptionCount, templateCount] = admin
-    ? await Promise.all([
-        prisma.subscription.count({ where: { ownerId: admin.id } }),
-        prisma.localTemplate.count({ where: { ownerId: admin.id } }),
-      ])
-    : [0, 0];
+  const subscriptionCount = admin
+    ? await prisma.subscription.count({ where: { ownerId: admin.id } })
+    : 0;
   const now = new Date().toISOString();
   return json({
     setupRequired,
@@ -39,7 +36,6 @@ export async function GET() {
             canUseSubscriptionLink: true,
           },
           subscriptionCount,
-          templateCount,
         }
       : null,
   });

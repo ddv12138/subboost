@@ -37,7 +37,6 @@ export interface User {
   accounts?: Array<{ provider: string; providerAccountId: string }>;
   quota: UserQuota;
   subscriptionCount: number;
-  templateCount: number;
 }
 
 interface UserState {

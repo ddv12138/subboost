@@ -24,7 +24,6 @@ function user(overrides: Partial<User> = {}): User {
       canUseSubscriptionLink: true,
     },
     subscriptionCount: 0,
-    templateCount: 0,
     ...overrides,
   };
 }
