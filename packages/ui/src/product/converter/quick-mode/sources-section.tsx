@@ -546,31 +546,31 @@ export function SourcesSection() {
                               side="bottom"
                               align="end"
                               sideOffset={8}
-                              className="z-50 w-[360px] rounded-xl border border-white/10 bg-black/90 backdrop-blur-md shadow-2xl p-3"
+                              className="z-50 w-[360px] rounded-xl border border-neutral-200 bg-white p-3 shadow-xl"
                             >
                               <div className="space-y-2 text-xs">
                                 <div className="flex items-center gap-2">
-                                  <HelpCircle className="h-4 w-4 text-amber-300" />
-                                  <div className="text-white font-medium">proxy-providers 模式</div>
+                                <HelpCircle className="h-4 w-4 text-amber-600" />
+                                <div className="text-neutral-900 font-medium">proxy-providers 模式</div>
                                 </div>
-                                <div className="text-white/60 leading-relaxed">
+                              <div className="text-neutral-600 leading-relaxed">
                                   部分订阅限制 CN IP 导入，url 无法在 SubBoost 内拉取解析。开启后 SubBoost
                                   不再拉取/解析该 url，而是在最终配置中写入{" "}
                                   <span className="font-mono">proxy-providers</span>，交由客户端自行拉取节点。
                                 </div>
-                                <div className="pt-2 border-t border-white/10 text-white/60 space-y-1">
-                                  <div className="font-medium text-white/80">注意开启后：</div>
+                              <div className="pt-2 border-t border-neutral-200 text-neutral-600 space-y-1">
+                                <div className="font-medium text-neutral-800">注意开启后：</div>
                                   <ul className="ml-4 list-disc space-y-1">
                                     <li>无法在预览中查看/管理该 url 的节点</li>
                                     <li>无法将这些节点用于中转代理组、分流组高级模式等高级功能</li>
                                     <li>节点命名模板与 tag 在该模式下不生效</li>
                                   </ul>
                                 </div>
-                                <div className="pt-2 border-t border-white/10 text-[10px] text-white/40">
+                              <div className="pt-2 border-t border-neutral-200 text-[10px] text-neutral-500">
                                   若导入 url 报“未解析到有效节点/获取失败”等，可尝试开启此模式。
                                 </div>
                               </div>
-                              <Popover.Arrow className="fill-white/10" />
+                            <Popover.Arrow className="fill-white" />
                             </Popover.Content>
                           </Popover.Portal>
                         </Popover.Root>
