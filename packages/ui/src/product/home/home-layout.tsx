@@ -286,21 +286,19 @@ export function HomeLayout({
                   {user && subscription.isEditingExistingSubscription ? "保存订阅" : "生成订阅链接"}
                   <ExternalLink className="ml-2 h-4 w-4" />
                 </Button>
-                {subscription.isEditingExistingSubscription && (
-                  <Button
-                    className="h-10 border-rose-500/50 text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 hover:border-rose-400/70"
-                    variant="outline"
-                    onClick={() => {
-                      if (typeof window !== "undefined") {
-                        (window as typeof window & { __skipUnsavedChangesPrompt?: boolean }).__skipUnsavedChangesPrompt = true;
-                        window.location.href = "/";
-                      }
-                    }}
-                    title="退出编辑模式"
-                  >
-                    退出编辑
-                  </Button>
-                )}
+                <Button
+                  className="h-10 border-rose-300 text-rose-700 hover:border-rose-400 hover:bg-rose-50 hover:text-rose-800"
+                  variant="outline"
+                  onClick={() => {
+                    if (typeof window !== "undefined") {
+                      (window as typeof window & { __skipUnsavedChangesPrompt?: boolean }).__skipUnsavedChangesPrompt = true;
+                      window.location.href = "/dashboard";
+                    }
+                  }}
+                  title="退出编辑模式并返回订阅列表"
+                >
+                  退出编辑
+                </Button>
               </CardFooter>
             </Card>
           </Tabs>

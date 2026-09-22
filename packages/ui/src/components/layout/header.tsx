@@ -186,7 +186,9 @@ export function Header({
           {/* Right Side Actions */}
           <div className="flex items-center gap-2">
             {/* User Menu */}
-            <UserMenu privilegedMenuItem={privilegedMenuItem} {...(mode === "local" ? { minimal: true, hideAvatar: true } : {})} />
+            {!(mode === "local" && !user) && (
+              <UserMenu privilegedMenuItem={privilegedMenuItem} {...(mode === "local" ? { minimal: true, hideAvatar: true } : {})} />
+            )}
 
             {/* Mobile Menu Button */}
             {(visibleNavItems.length > 0 || !user) && <button

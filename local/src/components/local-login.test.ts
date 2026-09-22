@@ -136,9 +136,8 @@ describe("local login component", () => {
   it("renders the initial loading card without requiring browser fetch", () => {
     const { html } = renderLogin();
 
-    expect(html).toContain("欢迎使用 SubBoost");
-    expect(html).toContain("href=\"/\"");
-    expect(html).toContain("src=\"/logo.png\"");
+    expect(html).toContain("登录后管理您的订阅");
+    expect(html).not.toContain("logo.png");
     expect(html).toContain("animate-pulse");
   });
 
@@ -165,7 +164,7 @@ describe("local login component", () => {
       3: "different",
     });
 
-    expect(html).toContain("初始化本地管理员账号");
+    expect(html).toContain("初始化管理员");
     expect(html).toContain("创建管理员");
     expect(html).toContain("至少 10 个字符");
     expect(mocks.inputs.find((input) => input.placeholder === "确认密码")).toEqual(
