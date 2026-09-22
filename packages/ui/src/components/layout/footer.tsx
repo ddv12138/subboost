@@ -140,6 +140,8 @@ export function Footer({
   helpLinks,
   resourceLinks = defaultResourceLinks,
 }: FooterProps) {
+  if (mode === "local") return null;
+
   const { user } = useUserStore();
   const hasUser = Boolean(user);
   const visibleFeatureLinks = filterLinks(

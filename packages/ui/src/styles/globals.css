@@ -129,6 +129,8 @@
 .local-minimal [class*="bg-white/"] { background-color: #f5f5f5 !important; }
 .local-minimal [class*="border-white/"] { border-color: #e5e5e5 !important; }
 .local-minimal [class*="text-indigo"] { color: #262626 !important; }
+.local-minimal button.bg-neutral-950,
+.local-minimal button.bg-neutral-950 * { color: #fff !important; }
 
 @layer components {
   /* 毛玻璃卡片 */

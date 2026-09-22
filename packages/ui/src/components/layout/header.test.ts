@@ -130,18 +130,18 @@ describe("Header", () => {
 
     const html = renderHeader({ mode: "local", privilegedMenuItem: { href: adminPath, label: "管理" } as any }, true);
 
-    expect(html).toContain("self-host");
-    expect(html).toContain("自部署入口");
+    expect(html).not.toContain("self-host");
+    expect(html).not.toContain("自部署入口");
     expect(html).toContain("我的订阅");
     expect(html).not.toContain("FAQ");
     expect(html).not.toContain("管理");
     expect(mocks.links.some((link) => link.href === adminPath)).toBe(false);
   });
 
-  it("renders a linked new release badge outside the home link", () => {
+  it("renders a linked new release badge outside the home link in the default header", () => {
     const releaseUrl = "https://github.com/SubBoost/subboost/releases/tag/v9.8.7";
     const html = renderHeader({
-      mode: "local",
+      mode: "default",
       extraBrandBadge: {
         label: "new",
         href: releaseUrl,
@@ -151,7 +151,7 @@ describe("Header", () => {
     });
 
     expect(html).toContain("new");
-    expect(html).toContain("self-host");
+    expect(html).toContain("online");
     expect(html).toContain(`href="${releaseUrl}"`);
     expect(html).toContain('target="_blank"');
 

@@ -139,10 +139,12 @@ export function Header({
                 SubBoost
               </span>
             </Link>
-            <span className="hidden flex-col items-start justify-center gap-1 leading-none sm:flex">
-              {extraBrandBadge && <BrandBadge badge={extraBrandBadge} tone="new" />}
-              <BrandBadge badge={modeBadge} />
-            </span>
+            {mode !== "local" && (
+              <span className="hidden flex-col items-start justify-center gap-1 leading-none sm:flex">
+                {extraBrandBadge && <BrandBadge badge={extraBrandBadge} tone="new" />}
+                <BrandBadge badge={modeBadge} />
+              </span>
+            )}
           </div>
 
           {/* Desktop Navigation */}
