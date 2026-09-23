@@ -16,7 +16,7 @@
     "test:unit": "vitest run",
     "test:core": "vitest run --config vitest.core.config.ts",
     "lint": "eslint local packages --max-warnings=0",
-    "check:local-app": "npm --prefix local run check",
+    "check:local-app": "npm --prefix local run build",
     "local:db:generate": "npm --prefix local run db:generate",
     "local:lint": "npm --prefix local run lint",
     "local:typecheck": "npm --prefix local run typecheck",
