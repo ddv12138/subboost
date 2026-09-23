@@ -225,7 +225,7 @@ SUBBOOST_IMAGE=image
 POSTGRES_DB=subboost
 POSTGRES_USER=subboost
 POSTGRES_PASSWORD=password
-DATABASE_URL=postgresql://subboost:password@db:5432/subboost?schema=public
+DATABASE_URL=file:/data/subboost.db
 ENCRYPTION_KEY=key
 JWT_SECRET=jwt
 CRON_SECRET=cron
@@ -304,7 +304,7 @@ SUBBOOST_IMAGE=old-image
 POSTGRES_DB=subboost
 POSTGRES_USER=subboost
 POSTGRES_PASSWORD=password
-DATABASE_URL=postgresql://subboost:password@db:5432/subboost?schema=public
+DATABASE_URL=file:/data/subboost.db
 ENCRYPTION_KEY=key
 JWT_SECRET=jwt
 CRON_SECRET=cron
@@ -375,7 +375,7 @@ SUBBOOST_IMAGE=old-image
 POSTGRES_DB=subboost
 POSTGRES_USER=subboost
 POSTGRES_PASSWORD=password
-DATABASE_URL=postgresql://subboost:password@db:5432/subboost?schema=public
+DATABASE_URL=file:/data/subboost.db
 ENCRYPTION_KEY=key
 JWT_SECRET=jwt
 CRON_SECRET=cron
