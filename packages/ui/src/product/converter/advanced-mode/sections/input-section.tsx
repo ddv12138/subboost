@@ -334,12 +334,12 @@ export function InputSection({
                         <Popover.Trigger asChild>
                           <button
                             type="button"
-                            className="inline-flex items-center gap-1 rounded-full border border-green-500/50 bg-green-500/5 px-2 py-0.5 text-xs font-semibold text-green-300 transition-colors hover:bg-green-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black whitespace-nowrap"
+                            className="inline-flex items-center gap-1 rounded-full border border-green-700/50 bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800 transition-colors hover:bg-green-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black whitespace-nowrap"
                             title="查看流量/到期"
                             aria-label="查看流量/到期"
                           >
                             ✓ {source.nodeCount} 节点
-                            <Menu className="h-3 w-3 text-green-300/70" aria-hidden="true" />
+                            <Menu className="h-3 w-3 text-green-800/70" aria-hidden="true" />
                           </button>
                         </Popover.Trigger>
                         <Popover.Portal>

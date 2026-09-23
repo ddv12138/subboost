@@ -57,7 +57,7 @@ describe("AdvancedMode", () => {
     captures.lastSections = undefined;
   });
 
-  it("renders all advanced sections expanded by default", () => {
+  it("renders only node input expanded by default", () => {
     const html = renderToStaticMarkup(React.createElement(AdvancedMode));
 
     expect(html).toContain("input");
@@ -70,8 +70,8 @@ describe("AdvancedMode", () => {
       "rules",
       "speedtest",
     ]);
-    for (const props of Object.values(captures.sections)) {
-      expect(props.isExpanded).toBe(true);
+    for (const [key, props] of Object.entries(captures.sections)) {
+      expect(props.isExpanded).toBe(key === "input");
       expect(props.onToggle).toBeTypeOf("function");
     }
   });
@@ -82,7 +82,7 @@ describe("AdvancedMode", () => {
     captures.sections.input.onToggle();
     expect(captures.stateSetter).toHaveBeenCalled();
     expect(captures.lastSections?.has("input")).toBe(false);
-    expect(captures.lastSections?.has("dns")).toBe(true);
+    expect(captures.lastSections?.has("dns")).toBe(false);
   });
 
   it("expands a collapsed section through the same toggle callback", () => {

@@ -11,7 +11,7 @@ const artisticNavItemBaseClassName =
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border border-transparent font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 disabled:pointer-events-none disabled:opacity-50";
 
 const artisticNavItemActiveClassName =
-  "border-white/10 bg-white/10 text-white shadow-[0_10px_30px_rgba(15,23,42,0.22)]";
+  "border-indigo-400/40 bg-indigo-500/15 text-indigo-100";
 
 const artisticNavItemInactiveClassName = "text-white/60 hover:bg-white/5 hover:text-white";
 
@@ -25,7 +25,7 @@ export const artisticTabsTriggerClassName = cn(
   artisticNavItemBaseClassName,
   artisticNavItemSizeClassNames.md,
   artisticNavItemInactiveClassName,
-  "data-[state=active]:border-white/10 data-[state=active]:bg-white/10 data-[state=active]:text-white data-[state=active]:shadow-[0_10px_30px_rgba(15,23,42,0.22)]"
+  "data-[state=active]:border-indigo-400/40 data-[state=active]:bg-indigo-500/15 data-[state=active]:text-indigo-100 data-[state=active]:shadow-none"
 );
 
 export const artisticTabsIconClassName =

@@ -255,7 +255,7 @@ export function ProxyGroupsAddedRuleSets({
         {typeof totalRules === "number" ? (
           <>
             从
-            <span className="font-semibold tabular-nums text-emerald-300">
+            <span className="font-semibold tabular-nums text-emerald-700">
               {totalRules}
             </span>
             {"条在线规则集中搜索并添加你需要的规则"}

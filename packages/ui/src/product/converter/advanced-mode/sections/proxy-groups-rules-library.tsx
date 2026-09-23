@@ -100,7 +100,7 @@ export function ProxyGroupsRulesLibrary() {
         <span className="rounded-full border border-amber-300 bg-amber-50 px-1.5 py-0 text-[9px] font-medium leading-4 text-amber-700">
           推荐
         </span>
-        <span className="text-[10px] text-white/40 ml-auto">
+        <span className="text-[10px] text-white/70 ml-auto">
           {ruleSearchKeyword.trim() && typeof totalMatched === "number"
             ? `匹配 ${totalMatched} · ${totalRules ? `${totalRules} 规则` : "规则库"}`
             : totalRules
@@ -110,12 +110,12 @@ export function ProxyGroupsRulesLibrary() {
       </div>
       <div className="space-y-2">
         <div className="relative">
-          <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/30" />
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/60" />
           <Input
             value={ruleSearchKeyword}
             onChange={(e) => setRuleSearchKeyword(e.target.value)}
             placeholder="搜索: Netflix、Google、Steam、Telegram..."
-            className="pl-7 text-xs h-7 bg-white/5 border-white/10"
+            className="pl-7 text-xs h-7 bg-white/5 border-white/10 placeholder:text-white/55"
           />
         </div>
 

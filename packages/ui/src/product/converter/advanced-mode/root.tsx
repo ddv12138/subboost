@@ -13,7 +13,7 @@ type SectionKey = "input" | "speedtest" | "filter" | "chain" | "proxy" | "rules"
 
 export function AdvancedMode() {
   const [expandedSections, setExpandedSections] = React.useState<Set<SectionKey>>(
-    new Set<SectionKey>(["input", "speedtest", "filter", "chain", "proxy", "rules", "dns"])
+    new Set<SectionKey>(["input"])
   );
 
   const toggleSection = (section: SectionKey) => {

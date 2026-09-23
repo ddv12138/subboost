@@ -166,7 +166,7 @@ export function RulesManagementSection({
         isExpanded={isExpanded}
         onToggle={onToggle}
         badge={
-          <Badge variant="outline" className="ml-auto shrink-0 border-emerald-500/40 bg-emerald-500/10 text-emerald-300">
+          <Badge variant="outline" className="ml-auto shrink-0 border-emerald-600/50 bg-emerald-100 text-emerald-800">
             可调 {allRulesMode ? preMatchEntries.length : editableEntries.length} / 全部 {entries.length}
           </Badge>
         }
