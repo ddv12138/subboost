@@ -27,7 +27,7 @@ The interface intentionally uses a restrained light theme. The subscription list
 
 ## Deployment
 
-Docker, Docker Compose v2, and Docker Buildx are required. PostgreSQL is started by the included Compose stack.
+Docker, Docker Compose v2, and Docker Buildx are required. The included Compose stack stores data in a SQLite file under `./data`.
 
 ```bash
 git clone https://github.com/ddv12138/subboost.git
@@ -37,8 +37,8 @@ cd subboost/local
 Create `local/.env` with the following values. Use long random secrets and do not commit this file.
 
 ```dotenv
-POSTGRES_PASSWORD=change-this-to-a-long-random-password
-DATABASE_URL=postgresql://subboost:change-this-to-a-long-random-password@db:5432/subboost
+SUBBOOST_DATA_DIR=./data
+DATABASE_URL=file:/data/subboost.db
 ENCRYPTION_KEY=replace-with-a-long-random-secret
 JWT_SECRET=replace-with-a-long-random-secret
 CRON_SECRET=replace-with-a-long-random-secret
@@ -51,8 +51,12 @@ APP_URL=https://subboost.example.com
 Build and start the stack:
 
 ```bash
+mkdir -p data
+sudo chown 1000:1000 data
 COMPOSE_BAKE=true docker compose up -d --build
 ```
+
+Existing PostgreSQL installations must migrate their records before changing `DATABASE_URL`; follow [the migration guide](docs/postgresql-to-sqlite.md). The original PostgreSQL files are not converted automatically.
 
 Open `APP_URL` (or `http://server-address:SUBBOOST_PORT`) and complete local administrator setup when prompted.
 

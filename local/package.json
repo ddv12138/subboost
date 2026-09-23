@@ -11,7 +11,8 @@
     "clean": "node scripts/clean-next.cjs",
     "dev": "next dev --turbopack -H 127.0.0.1 -p 3001",
     "db:generate": "prisma generate --schema prisma/schema.prisma",
-    "db:migrate": "prisma migrate deploy --schema prisma/schema.prisma",
+    "db:migrate": "node scripts/migrate-sqlite.mjs",
+    "db:import-postgres": "node scripts/import-postgres-to-sqlite.mjs",
     "prelint": "node scripts/ensure-root-node-modules.cjs",
     "lint": "eslint app src --max-warnings=0",
     "pretypecheck": "node scripts/ensure-root-node-modules.cjs && npm run clean",
@@ -22,8 +23,9 @@
     "check": "npm run lint && npm run typecheck && npm run build"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.8.0",
-    "@prisma/client": "^7.8.0",
+    "@prisma/adapter-better-sqlite3": "7.8.0",
+    "@prisma/client": "7.8.0",
+    "better-sqlite3": "^12.6.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-avatar": "^1.1.0",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -64,8 +66,9 @@
     "@types/react-dom": "^19.2.3",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.7",
+    "pg": "^8.23.0",
     "postcss": "8.5.15",
-    "prisma": "^7.8.0",
+    "prisma": "7.8.0",
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.3"
   },

@@ -37,8 +37,8 @@ cd subboost/local
 在 `local/.env` 中设置以下变量。请使用足够长的随机值；不要将此文件提交到 Git。
 
 ```dotenv
-POSTGRES_PASSWORD=change-this-to-a-long-random-password
-DATABASE_URL=postgresql://subboost:change-this-to-a-long-random-password@db:5432/subboost
+SUBBOOST_DATA_DIR=./data
+DATABASE_URL=file:/data/subboost.db
 ENCRYPTION_KEY=replace-with-a-long-random-secret
 JWT_SECRET=replace-with-a-long-random-secret
 CRON_SECRET=replace-with-a-long-random-secret
@@ -48,11 +48,20 @@ SUBBOOST_PORT=3000
 APP_URL=https://subboost.example.com
 ```
 
+首次启动前创建 SQLite 数据目录并交给容器使用的 `lk` UID/GID（1000:1000）：
+
+```bash
+mkdir -p data
+sudo chown 1000:1000 data
+```
+
 构建并启动：
 
 ```bash
 COMPOSE_BAKE=true docker compose up -d --build
 ```
+
+已有 PostgreSQL 安装需要先迁移数据，再切换 `DATABASE_URL`；系统不会自动转换 PostgreSQL 数据。请按[迁移指南](docs/postgresql-to-sqlite.md)操作。
 
 打开 `APP_URL`（或 `http://服务器地址:SUBBOOST_PORT`），按页面提示完成本地管理员初始化。
 

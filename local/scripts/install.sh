@@ -569,9 +569,21 @@ main() {
     exit 0
   fi
 
+  if [ -f "$ENV_FILE" ]; then
+    local previous_database_url
+    previous_database_url="$(env_value DATABASE_URL || true)"
+    case "$previous_database_url" in
+      postgres://*|postgresql://*)
+        die "This SQLite release requires a PostgreSQL-to-SQLite data migration first. Existing services and files were not changed. See docs/postgresql-to-sqlite.md."
+        ;;
+    esac
+  fi
+
   ensure_docker
   docker_login_if_needed
   run_root mkdir -p "$SUBBOOST_HOME" "$SUBBOOST_HOME/backups" "$(dirname "$SUBBOOST_BIN")"
+  run_root mkdir -p "$SUBBOOST_HOME/data"
+  run_root chown 1000:1000 "$SUBBOOST_HOME/data"
   install_file_from_url "$compose_url" "$COMPOSE_FILE" 644
   install_file_from_url "$manager_url" "$SUBBOOST_BIN" 755
 
@@ -582,18 +594,13 @@ main() {
   set_env_value SUBBOOST_RELEASE_URL "$SUBBOOST_UPDATE_RELEASE_URL"
   set_env_value SUBBOOST_COMPOSE_URL "$compose_url"
   set_env_value SUBBOOST_MANAGER_URL "$manager_url"
-  ensure_env_value POSTGRES_DB "subboost"
-  ensure_env_value POSTGRES_USER "subboost"
-  ensure_env_value POSTGRES_PASSWORD "$(random_hex 18)"
+  ensure_env_value SUBBOOST_DATA_DIR "$SUBBOOST_HOME/data"
   ensure_env_value ENCRYPTION_KEY "$(random_hex 32)"
   ensure_env_value JWT_SECRET "$(random_hex 32)"
   ensure_env_value CRON_SECRET "$(random_hex 32)"
 
-  local db_name db_user db_pass database_url current_url current_port default_host default_url input_url selected_port final_url recommended_port
-  db_name="$(env_value POSTGRES_DB)"
-  db_user="$(env_value POSTGRES_USER)"
-  db_pass="$(env_value POSTGRES_PASSWORD)"
-  database_url="postgresql://$db_user:$db_pass@db:5432/$db_name?schema=public"
+  local database_url current_url current_port default_host default_url input_url selected_port final_url recommended_port
+  database_url="file:/data/subboost.db"
   ensure_env_value DATABASE_URL "$database_url"
 
   current_port="${SUBBOOST_PORT:-$(env_value SUBBOOST_PORT || true)}"
@@ -631,7 +638,7 @@ main() {
   say "访问地址: $(env_value APP_URL)"
   say "第一次打开网页时，请创建管理员账号。"
   say "管理命令: subboost"
-  say "重要提醒: 请把 $ENV_FILE 和数据库备份一起保存好。"
+  say "重要提醒: 请把 $ENV_FILE 和 $SUBBOOST_HOME/data/subboost.db 一起保存好。"
 }
 
 if [ "${SUBBOOST_SCRIPT_SOURCE_ONLY:-0}" != "1" ]; then

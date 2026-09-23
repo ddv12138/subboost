@@ -122,7 +122,7 @@ describe("local lib helpers", () => {
     expect(getAppUrl()).toBe("http://127.0.0.1:3001");
     expect(isHttpsAppUrl()).toBe(false);
     expect(requireEnv("DATABASE_URL")).toBe(
-      "postgresql://subboost_local_dev:subboost_local_dev_password@localhost:5432/subboost_local_dev?schema=public",
+      "file:./dev.db",
     );
     expect(requireEnv("ENCRYPTION_KEY")).toBe("subboost-local-dev-encryption-key-0001");
     expect(requireEnv("JWT_SECRET")).toBe("subboost-local-dev-jwt-secret-00000001");

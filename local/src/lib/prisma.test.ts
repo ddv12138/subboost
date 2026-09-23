@@ -2,12 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   PrismaClient: vi.fn(),
-  PrismaPg: vi.fn(),
+  PrismaBetterSqlite3: vi.fn(),
 }));
 
 async function loadPrismaModule(env: { DATABASE_URL?: string; NODE_ENV?: string }, existing?: unknown) {
   vi.resetModules();
-  vi.doMock("@prisma/adapter-pg", () => ({ PrismaPg: mocks.PrismaPg }));
+  vi.doMock("@prisma/adapter-better-sqlite3", () => ({ PrismaBetterSqlite3: mocks.PrismaBetterSqlite3 }));
   vi.doMock("../generated/prisma", () => ({ PrismaClient: mocks.PrismaClient }));
 
   vi.stubEnv("DATABASE_URL", env.DATABASE_URL);
@@ -27,7 +27,7 @@ describe("local prisma singleton", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.PrismaPg.mockImplementation(function PrismaPg(this: { adapterOptions: unknown }, options: unknown) {
+    mocks.PrismaBetterSqlite3.mockImplementation(function PrismaBetterSqlite3(this: { adapterOptions: unknown }, options: unknown) {
       this.adapterOptions = options;
     });
     mocks.PrismaClient.mockImplementation(function PrismaClient(this: { clientOptions: unknown }, options: unknown) {
@@ -40,19 +40,19 @@ describe("local prisma singleton", () => {
     vi.stubEnv("NODE_ENV", originalNodeEnv);
     vi.unstubAllEnvs();
     delete (globalThis as { localPrisma?: unknown }).localPrisma;
-    vi.doUnmock("@prisma/adapter-pg");
+    vi.doUnmock("@prisma/adapter-better-sqlite3");
     vi.doUnmock("../generated/prisma");
   });
 
-  it("creates a development client with a trimmed configured database URL", async () => {
+  it("creates a development client with a trimmed SQLite file URL", async () => {
     const mod = await loadPrismaModule({
-      DATABASE_URL: " postgresql://local.example/db ",
+      DATABASE_URL: " file:/tmp/local.db ",
       NODE_ENV: "development",
     });
 
-    expect(mocks.PrismaPg).toHaveBeenCalledWith({ connectionString: "postgresql://local.example/db" });
+    expect(mocks.PrismaBetterSqlite3).toHaveBeenCalledWith({ url: "/tmp/local.db" });
     expect(mocks.PrismaClient).toHaveBeenCalledWith({
-      adapter: expect.objectContaining({ adapterOptions: { connectionString: "postgresql://local.example/db" } }),
+      adapter: expect.objectContaining({ adapterOptions: { url: "/tmp/local.db" } }),
       log: ["warn", "error"],
     });
     expect((globalThis as { localPrisma?: unknown }).localPrisma).toBe(mod.prisma);
@@ -60,7 +60,7 @@ describe("local prisma singleton", () => {
 
   it("reuses an existing global client in non-production mode", async () => {
     const existing = { reused: true };
-    const mod = await loadPrismaModule({ DATABASE_URL: "postgresql://ignored/db", NODE_ENV: "test" }, existing);
+    const mod = await loadPrismaModule({ DATABASE_URL: "file:ignored.db", NODE_ENV: "test" }, existing);
 
     expect(mod.prisma).toBe(existing);
     expect(mocks.PrismaClient).not.toHaveBeenCalled();
@@ -70,15 +70,9 @@ describe("local prisma singleton", () => {
   it("uses the default URL and avoids global caching in production", async () => {
     const mod = await loadPrismaModule({ DATABASE_URL: "   ", NODE_ENV: "production" });
 
-    expect(mocks.PrismaPg).toHaveBeenCalledWith({
-      connectionString: "postgresql://subboost_local_dev:subboost_local_dev_password@localhost:5432/subboost_local_dev?schema=public",
-    });
+    expect(mocks.PrismaBetterSqlite3).toHaveBeenCalledWith({ url: "./dev.db" });
     expect(mocks.PrismaClient).toHaveBeenCalledWith({
-      adapter: expect.objectContaining({
-        adapterOptions: {
-          connectionString: "postgresql://subboost_local_dev:subboost_local_dev_password@localhost:5432/subboost_local_dev?schema=public",
-        },
-      }),
+      adapter: expect.objectContaining({ adapterOptions: { url: "./dev.db" } }),
       log: ["error"],
     });
     expect((globalThis as { localPrisma?: unknown }).localPrisma).toBeUndefined();

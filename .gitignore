@@ -13,6 +13,7 @@ local/src/generated/
 !.env.example
 *.pem
 data/
+local/backups/
 .tmp/
 tmp/
 npm-debug.log*

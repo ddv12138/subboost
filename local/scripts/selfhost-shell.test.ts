@@ -489,34 +489,43 @@ ENV
       base="$(mktemp -d)"
       home="$base/subboost home"
       mkdir -p "$home/backups"
+      mkdir -p "$home/data"
+      : > "$home/data/subboost.db"
       trap 'rm -rf "$base"' EXIT
       export SUBBOOST_SCRIPT_SOURCE_ONLY=1
       export SUBBOOST_HOME="$home"
+      export SUBBOOST_DATA_DIR="$home/data"
       source local/scripts/subboost.sh
       sudo_do() { "$@"; }
       load_env() { :; }
-      compose() { printf 'dump'; }
+      compose() {
+        if [ "$1" = "cp" ]; then
+          printf 'backup' > "$3"
+          return 0
+        fi
+        return 0
+      }
       cat > "$ENV_FILE" <<'ENV'
 POSTGRES_DB=subboost
 POSTGRES_USER=subboost
 ENV
       for i in $(seq -w 1 12); do
-        : > "$BACKUP_DIR/subboost-20240101T0000\${i}Z.sql.gz"
+        : > "$BACKUP_DIR/subboost-20240101T0000\${i}Z.db"
         : > "$BACKUP_DIR/subboost-20240101T0000\${i}Z.env"
       done
       backup_cmd >/dev/null
-      sql_count="$(find "$BACKUP_DIR" -maxdepth 1 -type f -name 'subboost-*.sql.gz' | wc -l | tr -d '[:space:]')"
+      db_count="$(find "$BACKUP_DIR" -maxdepth 1 -type f -name 'subboost-*.db' | wc -l | tr -d '[:space:]')"
       env_count="$(find "$BACKUP_DIR" -maxdepth 1 -type f -name 'subboost-*.env' | wc -l | tr -d '[:space:]')"
-      printf 'sql=%s env=%s\\n' "$sql_count" "$env_count"
-      [ "$sql_count" = "10" ]
+      printf 'db=%s env=%s\\n' "$db_count" "$env_count"
+      [ "$db_count" = "10" ]
       [ "$env_count" = "10" ]
-      [ ! -e "$BACKUP_DIR/subboost-20240101T000001Z.sql.gz" ]
+      [ ! -e "$BACKUP_DIR/subboost-20240101T000001Z.db" ]
       [ ! -e "$BACKUP_DIR/subboost-20240101T000001Z.env" ]
     `;
 
     const result = runBash(script);
 
     expect(result.status).toBe(0);
-    expect(result.stdout).toContain("sql=10 env=10");
+    expect(result.stdout).toContain("db=10 env=10");
   });
 });

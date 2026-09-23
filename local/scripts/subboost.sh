@@ -281,7 +281,16 @@ status_cmd() {
   say ""
   say "服务状态:"
   say "应用: $(service_status_text app)"
-  say "数据库: $(service_status_text db)"
+  local db_path="${SUBBOOST_DATA_DIR:-$SUBBOOST_HOME/data}/subboost.db"
+  case "$db_path" in
+    /*) ;;
+    *) db_path="$SUBBOOST_HOME/$db_path" ;;
+  esac
+  if [ -f "$db_path" ]; then
+    say "SQLite 数据库: $db_path ($(du -h "$db_path" | awk '{print $1}'))"
+  else
+    say "SQLite 数据库: 尚未创建 ($db_path)"
+  fi
   say "定时任务: $(service_status_text cron)"
   say ""
   say "健康检查: $(health_status_text)"
@@ -292,6 +301,11 @@ status_cmd() {
 
 update_cmd() {
   load_env
+  case "${DATABASE_URL:-}" in
+    postgres://*|postgresql://*)
+      die "This SQLite release requires a PostgreSQL-to-SQLite data migration first. Existing services were not changed. See docs/postgresql-to-sqlite.md."
+      ;;
+  esac
   local release_url="${SUBBOOST_RELEASE_URL:-}"
   local release_file="$TMP_DIR/release.json"
   local image compose_url manager_url
@@ -334,24 +348,34 @@ logs_cmd() {
 backup_cmd() {
   load_env
   sudo_do mkdir -p "$BACKUP_DIR"
-  local stamp db_tmp db_out env_out
-  local -a sql_backups env_backups
+  local stamp db_tmp db_out env_out db_path
+  local container_tmp
+  local -a db_backups env_backups
   local i
   stamp="$(date -u +%Y%m%dT%H%M%SZ)"
-  db_tmp="$BACKUP_DIR/subboost-$stamp.sql.gz.partial"
-  db_out="$BACKUP_DIR/subboost-$stamp.sql.gz"
+  db_tmp="$BACKUP_DIR/subboost-$stamp.db.partial"
+  db_out="$BACKUP_DIR/subboost-$stamp.db"
   env_out="$BACKUP_DIR/subboost-$stamp.env"
-  compose exec -T db pg_dump -U "${POSTGRES_USER:-subboost}" -d "${POSTGRES_DB:-subboost}" | gzip -c | sudo_do tee "$db_tmp" >/dev/null
+  db_path="${SUBBOOST_DATA_DIR:-$SUBBOOST_HOME/data}/subboost.db"
+  case "$db_path" in
+    /*) ;;
+    *) db_path="$SUBBOOST_HOME/$db_path" ;;
+  esac
+  container_tmp="/data/.subboost-backup-$stamp.db"
+  [ -f "$db_path" ] || die "SQLite database not found: $db_path"
+  compose exec -T app node -e 'const db=process.env.DATABASE_PATH || "/data/subboost.db"; const src=new (require("better-sqlite3"))(db); src.backup(process.argv[1]).then(()=>src.close()).catch(error=>{console.error(error);process.exitCode=1})' "$container_tmp"
+  compose cp "app:$container_tmp" "$db_tmp"
+  compose exec -T app rm -f "$container_tmp"
   sudo_do mv "$db_tmp" "$db_out"
   sudo_do install -m 600 "$ENV_FILE" "$env_out"
 
   shopt -s nullglob
-  sql_backups=("$BACKUP_DIR"/subboost-*.sql.gz)
+  db_backups=("$BACKUP_DIR"/subboost-*.db)
   env_backups=("$BACKUP_DIR"/subboost-*.env)
   shopt -u nullglob
 
-  for ((i = 0; i < ${#sql_backups[@]} - 10; i++)); do
-    sudo_do rm -f -- "${sql_backups[$i]}"
+  for ((i = 0; i < ${#db_backups[@]} - 10; i++)); do
+    sudo_do rm -f -- "${db_backups[$i]}"
   done
   for ((i = 0; i < ${#env_backups[@]} - 10; i++)); do
     sudo_do rm -f -- "${env_backups[$i]}"
@@ -374,7 +398,7 @@ doctor_cmd() {
   [ -f "$ENV_FILE" ] || die "Missing $ENV_FILE"
   [ -f "$COMPOSE_FILE" ] || die "Missing $COMPOSE_FILE"
   load_env
-  for key in SUBBOOST_IMAGE POSTGRES_DB POSTGRES_USER POSTGRES_PASSWORD DATABASE_URL ENCRYPTION_KEY JWT_SECRET CRON_SECRET APP_URL SUBBOOST_PORT; do
+  for key in SUBBOOST_IMAGE DATABASE_URL ENCRYPTION_KEY JWT_SECRET CRON_SECRET APP_URL SUBBOOST_PORT; do
     grep -q "^$key=" "$ENV_FILE" || die "Missing $key in $ENV_FILE"
   done
   compose config >/dev/null
