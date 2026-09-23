@@ -597,7 +597,6 @@ main() {
   ensure_env_value SUBBOOST_DATA_DIR "$SUBBOOST_HOME/data"
   ensure_env_value ENCRYPTION_KEY "$(random_hex 32)"
   ensure_env_value JWT_SECRET "$(random_hex 32)"
-  ensure_env_value CRON_SECRET "$(random_hex 32)"
 
   local database_url current_url current_port default_host default_url input_url selected_port final_url recommended_port
   database_url="file:/data/subboost.db"

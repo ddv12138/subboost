@@ -41,7 +41,6 @@ SUBBOOST_DATA_DIR=./data
 DATABASE_URL=file:/data/subboost.db
 ENCRYPTION_KEY=replace-with-a-long-random-secret
 JWT_SECRET=replace-with-a-long-random-secret
-CRON_SECRET=replace-with-a-long-random-secret
 
 # 可选：默认 http://localhost:3000
 SUBBOOST_PORT=3000

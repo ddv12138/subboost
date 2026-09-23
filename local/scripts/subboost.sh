@@ -291,7 +291,7 @@ status_cmd() {
   else
     say "SQLite 数据库: 尚未创建 ($db_path)"
   fi
-  say "定时任务: $(service_status_text cron)"
+  say "定时更新: 随应用进程运行"
   say ""
   say "健康检查: $(health_status_text)"
   say "备份目录: $BACKUP_DIR"
@@ -398,7 +398,7 @@ doctor_cmd() {
   [ -f "$ENV_FILE" ] || die "Missing $ENV_FILE"
   [ -f "$COMPOSE_FILE" ] || die "Missing $COMPOSE_FILE"
   load_env
-  for key in SUBBOOST_IMAGE DATABASE_URL ENCRYPTION_KEY JWT_SECRET CRON_SECRET APP_URL SUBBOOST_PORT; do
+  for key in SUBBOOST_IMAGE DATABASE_URL ENCRYPTION_KEY JWT_SECRET APP_URL SUBBOOST_PORT; do
     grep -q "^$key=" "$ENV_FILE" || die "Missing $key in $ENV_FILE"
   done
   compose config >/dev/null

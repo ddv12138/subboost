@@ -1,16 +1,15 @@
 import { NextRequest } from "next/server";
 import { json } from "@local/lib/http";
-import { requireLocalCronAuth } from "@local/lib/cron-auth";
-import { runLocalSubscriptionAutoUpdateCron } from "@local/lib/auto-update-service";
+import { withCurrentAdmin } from "@local/lib/api-auth";
+import { runLocalSubscriptionAutoUpdate } from "@local/lib/local-cron-jobs";
 
 export async function POST(request: NextRequest) {
-  const authError = requireLocalCronAuth(request);
-  if (authError) return authError;
-
-  const summary = await runLocalSubscriptionAutoUpdateCron();
-  return json({
-    success: true,
-    ...summary,
-    timestamp: new Date().toISOString(),
+  return withCurrentAdmin(async () => {
+    const summary = await runLocalSubscriptionAutoUpdate();
+    return json({
+      success: true,
+      ...summary,
+      timestamp: new Date().toISOString(),
+    });
   });
 }

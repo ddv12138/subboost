@@ -1,30 +1,26 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { runLocalSubscriptionAutoUpdateCron } from "@local/lib/auto-update-service";
-import { refreshRuleIndex } from "@local/lib/rule-catalog";
+import { withCurrentAdmin } from "@local/lib/api-auth";
+import { runLocalSubscriptionAutoUpdate, refreshLocalRuleIndex } from "@local/lib/local-cron-jobs";
 import * as updateSubscriptionsRoute from "../app/api/cron/update-subscriptions/route";
 import * as updateRuleIndexRoute from "../app/api/cron/update-rule-index/route";
 
-vi.mock("@local/lib/auto-update-service", () => ({
-  runLocalSubscriptionAutoUpdateCron: vi.fn(),
+let authenticated = true;
+
+vi.mock("@local/lib/local-cron-jobs", () => ({
+  runLocalSubscriptionAutoUpdate: vi.fn(),
+  refreshLocalRuleIndex: vi.fn(),
 }));
 
-vi.mock("@local/lib/rule-catalog", () => ({
-  refreshRuleIndex: vi.fn(),
+vi.mock("@local/lib/api-auth", () => ({
+  withCurrentAdmin: vi.fn(async (handler: (admin: { id: string; username: string }) => Response | Promise<Response>) => {
+    if (!authenticated) return Response.json({ error: "Authentication required.", code: "UNAUTHORIZED" }, { status: 401 });
+    return handler({ id: "admin-1", username: "admin" });
+  }),
 }));
 
-function cronRequest(secret?: string): Request {
-  return new Request("http://local.test/api/cron/update-subscriptions", {
-    method: "POST",
-    headers: secret ? { Authorization: `Bearer ${secret}` } : {},
-  });
-}
-
-function cronRequestWithAuthorization(authorization: string): Request {
-  return new Request("http://local.test/api/cron/update-subscriptions", {
-    method: "POST",
-    headers: { Authorization: authorization },
-  });
+function request(path: string): Request {
+  return new Request(`http://local.test${path}`, { method: "POST" });
 }
 
 async function readJson(response: Response): Promise<Record<string, unknown>> {
@@ -33,16 +29,15 @@ async function readJson(response: Response): Promise<Record<string, unknown>> {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.stubEnv("NODE_ENV", "production");
-  vi.stubEnv("CRON_SECRET", "secret-1");
-  vi.mocked(runLocalSubscriptionAutoUpdateCron).mockResolvedValue({
+  authenticated = true;
+  vi.mocked(runLocalSubscriptionAutoUpdate).mockResolvedValue({
     results: { total: 0, updated: 0, skipped: 0, failed: 0, errors: [] },
     updatedSubscriptions: [],
     failedSubscriptions: [],
     updatedUsers: [],
     topHosts: [],
   });
-  vi.mocked(refreshRuleIndex).mockResolvedValue({
+  vi.mocked(refreshLocalRuleIndex).mockResolvedValue({
     status: "skipped",
     index: { geosite: [], geoip: [], fetchedAt: 1, expiresAt: 2, source: "remote" },
     diff: {
@@ -59,65 +54,34 @@ beforeEach(() => {
 });
 
 describe("local cron routes", () => {
-  it("rejects cron calls when CRON_SECRET is missing in production", async () => {
-    vi.stubEnv("CRON_SECRET", "");
-    const response = await updateSubscriptionsRoute.POST(cronRequest());
-    expect(response.status).toBe(500);
-    expect(await readJson(response)).toEqual({
-      error: "CRON_SECRET not configured.",
-      code: "CONFIGURATION_ERROR",
-    });
-    expect(runLocalSubscriptionAutoUpdateCron).not.toHaveBeenCalled();
-  });
-
-  it("allows missing CRON_SECRET only for the explicit development bypass", async () => {
-    vi.stubEnv("NODE_ENV", "development");
-    vi.stubEnv("ALLOW_UNAUTHENTICATED_CRON", "true");
-    vi.stubEnv("CRON_SECRET", "");
-
-    const response = await updateSubscriptionsRoute.POST(cronRequest());
-
-    expect(response.status).toBe(200);
-    expect(runLocalSubscriptionAutoUpdateCron).toHaveBeenCalledTimes(1);
-  });
-
-  it("rejects calls with the wrong cron secret", async () => {
-    const response = await updateSubscriptionsRoute.POST(cronRequest("wrong"));
+  it("rejects calls when the administrator is not logged in", async () => {
+    authenticated = false;
+    const response = await updateSubscriptionsRoute.POST(request("/api/cron/update-subscriptions"));
     expect(response.status).toBe(401);
     expect(await readJson(response)).toEqual({
-      error: "Invalid cron secret.",
+      error: "Authentication required.",
       code: "UNAUTHORIZED",
     });
-    expect(runLocalSubscriptionAutoUpdateCron).not.toHaveBeenCalled();
+    expect(runLocalSubscriptionAutoUpdate).not.toHaveBeenCalled();
   });
 
-  it("rejects raw token authorization headers", async () => {
-    const response = await updateSubscriptionsRoute.POST(cronRequestWithAuthorization("secret-1"));
-    expect(response.status).toBe(401);
-    expect(await readJson(response)).toEqual({
-      error: "Invalid cron secret.",
-      code: "UNAUTHORIZED",
-    });
-    expect(runLocalSubscriptionAutoUpdateCron).not.toHaveBeenCalled();
-  });
-
-  it("runs the local subscription auto-update cron when authorized", async () => {
-    const response = await updateSubscriptionsRoute.POST(cronRequest("secret-1"));
+  it("runs subscription updates for a logged-in administrator", async () => {
+    const response = await updateSubscriptionsRoute.POST(request("/api/cron/update-subscriptions"));
     expect(response.status).toBe(200);
-    expect(runLocalSubscriptionAutoUpdateCron).toHaveBeenCalledTimes(1);
+    expect(withCurrentAdmin).toHaveBeenCalledTimes(1);
+    expect(runLocalSubscriptionAutoUpdate).toHaveBeenCalledTimes(1);
     expect((await readJson(response)).success).toBe(true);
   });
 
-  it("runs the rule index refresh cron when authorized", async () => {
-    const response = await updateRuleIndexRoute.POST(
-      new Request("http://local.test/api/cron/update-rule-index", {
-        method: "POST",
-        headers: { Authorization: "bearer secret-1" },
-      })
-    );
+  it("runs rule-index refresh for a logged-in administrator", async () => {
+    const response = await updateRuleIndexRoute.POST(request("/api/cron/update-rule-index"));
     expect(response.status).toBe(200);
-    expect(refreshRuleIndex).toHaveBeenCalledWith({ force: false });
+    expect(refreshLocalRuleIndex).toHaveBeenCalledWith(false);
     expect((await readJson(response)).success).toBe(true);
+  });
+
+  it("preserves the explicit force option for an administrator", async () => {
+    await updateRuleIndexRoute.POST(request("/api/cron/update-rule-index?force=1"));
+    expect(refreshLocalRuleIndex).toHaveBeenCalledWith(true);
   });
 });
-

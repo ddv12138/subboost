@@ -48,7 +48,6 @@ POSTGRES_PASSWORD=password
 DATABASE_URL=postgresql://subboost:password@db:5432/subboost?schema=public
 ENCRYPTION_KEY=key
 JWT_SECRET=jwt
-CRON_SECRET=cron
 APP_URL=http://127.0.0.1:31000
 SUBBOOST_PORT=31000
 ENV
@@ -110,7 +109,6 @@ POSTGRES_PASSWORD=password
 DATABASE_URL=postgresql://subboost:password@db:5432/subboost?schema=public
 ENCRYPTION_KEY=key
 JWT_SECRET=jwt
-CRON_SECRET=cron
 APP_URL=http://127.0.0.1:31000
 SUBBOOST_PORT=31000
 ENV
@@ -163,7 +161,6 @@ POSTGRES_PASSWORD=password
 DATABASE_URL=postgresql://subboost:password@db:5432/subboost?schema=public
 ENCRYPTION_KEY=key
 JWT_SECRET=jwt
-CRON_SECRET=cron
 APP_URL=http://127.0.0.1:31041
 SUBBOOST_PORT=31041
 ENV
@@ -228,7 +225,6 @@ POSTGRES_PASSWORD=password
 DATABASE_URL=file:/data/subboost.db
 ENCRYPTION_KEY=key
 JWT_SECRET=jwt
-CRON_SECRET=cron
 APP_URL=http://127.0.0.1:31000
 SUBBOOST_PORT=31000
 ENV
@@ -307,7 +303,6 @@ POSTGRES_PASSWORD=password
 DATABASE_URL=file:/data/subboost.db
 ENCRYPTION_KEY=key
 JWT_SECRET=jwt
-CRON_SECRET=cron
 APP_URL=http://127.0.0.1:31000
 SUBBOOST_PORT=31000
 ENV
@@ -378,7 +373,6 @@ POSTGRES_PASSWORD=password
 DATABASE_URL=file:/data/subboost.db
 ENCRYPTION_KEY=key
 JWT_SECRET=jwt
-CRON_SECRET=cron
 APP_URL=http://127.0.0.1:31000
 SUBBOOST_PORT=31000
 ENV
