@@ -139,11 +139,11 @@ export function RulesManagementSection({
         title: "开启“调整所有规则顺序”？",
         description: (
           <span className="block pt-2">
-            <span className="block rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 leading-6 text-amber-100/90">
-              <span className="font-medium text-amber-200">警告：</span>
+            <span className="block rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 leading-6 text-amber-900">
+              <span className="font-medium text-amber-800">警告：</span>
               开启后，你可以移动任意规则到任意位置，这会改变分流优先级与命中结果。
             </span>
-            <span className="mt-3 block leading-6 text-white/65">
+            <span className="mt-3 block leading-6 text-neutral-600">
               如果你不知道调整规则顺序的影响，请不要动它。
             </span>
           </span>
