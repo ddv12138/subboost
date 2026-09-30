@@ -78,6 +78,34 @@ describe("parser public contracts", () => {
     );
   });
 
+  it("parses Hysteria2 certificate pin (hpkp) and inline TLS certificate (tls_certificate)", () => {
+    const pinned = mustParseNode(
+      "hysteria2://secret@hy2.example.com:443?peer=cdn.example.com&hpkp=22:43:9F:9E:61:A7:08:0E:96:90:95:F8:D8:A8:16:D7:FD:BE:0A:4C:AF:C7:75:E0:53:45:CC:01:09:13:86:40&obfs=none&upmbps=200&downmbps=1000#HY2 Pin"
+    );
+
+    expect(pinned).toMatchObject({
+      type: "hysteria2",
+      sni: "cdn.example.com",
+      up: "200 mbps",
+      down: "1000 mbps",
+      fingerprint: "22:43:9F:9E:61:A7:08:0E:96:90:95:F8:D8:A8:16:D7:FD:BE:0A:4C:AF:C7:75:E0:53:45:CC:01:09:13:86:40",
+    });
+    expect(pinned).not.toHaveProperty("obfs");
+
+    const cert = "-----BEGIN CERTIFICATE-----,MIIBcDCCARagAwIBAgIU,-----END CERTIFICATE-----";
+    const withCert = mustParseNode(
+      `hysteria2://secret@hy2.example.com:443?allowInsecure=false&alpn&security=tls&sni=cdn.example.com&tls_certificate=${encodeURIComponent(cert)}#HY2 Cert`
+    );
+
+    expect(withCert).toMatchObject({
+      type: "hysteria2",
+      sni: "cdn.example.com",
+      "ca-str": "-----BEGIN CERTIFICATE-----\nMIIBcDCCARagAwIBAgIU\n-----END CERTIFICATE-----",
+    });
+    expect(withCert).not.toHaveProperty("skip-cert-verify");
+    expect(withCert).not.toHaveProperty("alpn");
+  });
+
   it("parses TUIC aliases for transport knobs", () => {
     const node = mustParseNode(
       "tuic://11111111-1111-4111-8111-111111111111:secret@tuic.example.com:443?fast-open=1&reduce-rtt=true&congestion-control=bbr&udp-relay-mode=native&request-timeout=5000&heartbeat-interval=9000&max-open-streams=16&max-idle-time=30#TUIC"

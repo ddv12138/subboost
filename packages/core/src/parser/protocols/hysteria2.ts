@@ -31,6 +31,17 @@ function parseHopIntervalParam(params: URLSearchParams, keys: string[]): number 
   return undefined;
 }
 
+function normalizeCertificatePem(value: string): string | undefined {
+  const raw = value.trim();
+  if (!raw) return undefined;
+  // 分享链接里的 PEM 换行常被替换成逗号，需还原成标准 PEM。
+  const pem = raw.includes("\n") ? raw : raw.replace(/,/g, "\n");
+  if (!pem.includes("-----BEGIN CERTIFICATE-----") || !pem.includes("-----END CERTIFICATE-----")) {
+    return undefined;
+  }
+  return pem;
+}
+
 function trimTrailingSlashes(value: string): string {
   let end = value.length;
   while (end > 0 && value[end - 1] === "/") end -= 1;
@@ -139,7 +150,16 @@ export function parseHysteria2(uri: string): Hysteria2Node {
     params.get("obfs-password") || params.get("obfs_password") || params.get("obfsPassword") || undefined;
   const portsFromQuery = ports;
   const alpnRaw = (params.get("alpn") || "").trim();
-  const fingerprint = (params.get("fp") || params.get("fingerprint") || params.get("pinSHA256") || "").trim();
+  // 证书校验材料：部分订阅用 hpkp/pinSHA256 传证书 SHA-256 指纹，
+  // 另一些（如 sing-box 风格）用 tls_certificate 传自签 PEM 证书。
+  const certificateFingerprint = (
+    params.get("hpkp") ||
+    params.get("pinSHA256") ||
+    params.get("fp") ||
+    params.get("fingerprint") ||
+    ""
+  ).trim();
+  const tlsCertificate = (params.get("tls_certificate") || params.get("tls-certificate") || "").trim();
   const hopInterval = parseHopIntervalParam(params, ["hop-interval", "hop_interval", "hopInterval"]);
   const mldsa65Seed =
     params.get("mldsa65-seed") || params.get("mldsa65_seed") || params.get("mldsa65Seed") || undefined;
@@ -180,8 +200,13 @@ export function parseHysteria2(uri: string): Hysteria2Node {
     if (list.length > 0) node.alpn = list;
   }
 
-  if (fingerprint) {
-    node.fingerprint = fingerprint;
+  if (certificateFingerprint) {
+    node.fingerprint = certificateFingerprint;
+  }
+
+  const caStr = normalizeCertificatePem(tlsCertificate);
+  if (caStr) {
+    node["ca-str"] = caStr;
   }
 
   if (up) {

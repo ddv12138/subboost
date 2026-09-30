@@ -13,7 +13,7 @@ const PROXY_FIELD_ORDER_PROTOCOL: Partial<Record<KnownNodeType, string[]>> = {
   trojan: ["password"],
   anytls: ["password"],
   hysteria: ["protocol", "auth-str", "obfs", "ports", "up", "down"],
-  hysteria2: ["password", "obfs", "obfs-password", "up", "down", "ports", "hop-interval", "fingerprint", "alpn"],
+  hysteria2: ["password", "obfs", "obfs-password", "up", "down", "ports", "hop-interval", "fingerprint", "ca-str", "alpn"],
   socks5: ["username", "password"],
   socks4: ["username", "password"],
   http: ["username", "password", "headers"],

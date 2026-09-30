@@ -224,6 +224,7 @@ export interface Hysteria2Node extends BaseNode {
   "skip-cert-verify"?: boolean;
   alpn?: string[];
   fingerprint?: string;
+  "ca-str"?: string;
   obfs?: string;
   "obfs-password"?: string;
   up?: string;
