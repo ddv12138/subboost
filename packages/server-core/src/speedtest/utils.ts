@@ -8,12 +8,19 @@ const TCP_BASED_TYPES = new Set([
 
 const FORCED_TLS_TYPES = new Set(["trojan", "anytls", "https"]);
 
+// 基于 QUIC(UDP) 的协议：可用 Version Negotiation 探针测速。
+const QUIC_BASED_TYPES = new Set(["hysteria", "hysteria2", "tuic"]);
+
 export function isTCPBased(type: string): boolean {
   return TCP_BASED_TYPES.has(type);
 }
 
 export function isUDPBased(type: string): boolean {
   return type === "hysteria" || type === "hysteria2" || type === "tuic" || type === "wireguard";
+}
+
+export function isQUICBased(type: string): boolean {
+  return QUIC_BASED_TYPES.has(type);
 }
 
 export function hasTLS(node: ParsedNode): boolean {

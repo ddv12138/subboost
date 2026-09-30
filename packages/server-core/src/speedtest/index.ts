@@ -2,9 +2,10 @@ import type { ParsedNode } from "@subboost/core/types/node";
 import type { SpeedTestConfig } from "@subboost/core/types/config";
 import { measureTCPLatency, measureTLSLatency } from "./tcp-latency";
 import { measureUDPLatency } from "./udp-latency";
-import { isTCPBased, isUDPBased, hasTLS, getSNI } from "./utils";
+import { measureQUICLatency } from "./quic-latency";
+import { isTCPBased, isUDPBased, isQUICBased, hasTLS, getSNI } from "./utils";
 
-export { isTCPBased, isUDPBased, hasTLS, getSNI };
+export { isTCPBased, isUDPBased, isQUICBased, hasTLS, getSNI };
 
 async function measureNodeLatency(
   node: ParsedNode,
@@ -20,6 +21,7 @@ async function measureNodeLatency(
   }
 
   if (isUDPBased(type)) {
+    if (isQUICBased(type)) return measureQUICLatency(server, port, timeout);
     return measureUDPLatency(server, port, timeout);
   }
 
