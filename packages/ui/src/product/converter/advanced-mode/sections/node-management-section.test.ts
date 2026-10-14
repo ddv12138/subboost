@@ -225,6 +225,12 @@ describe("NodeManagementSection", () => {
 
     await mocks.captures.switch.onCheckedChange(true);
     expect(mocks.confirmDialog).toHaveBeenCalledWith(expect.objectContaining({ confirmText: "我已了解，开启" }));
+    const description = renderToStaticMarkup(mocks.confirmDialog.mock.calls[0][0].description);
+    expect(description).toContain("text-amber-900");
+    expect(description).toContain("bg-amber-50");
+    expect(description).toContain("text-neutral-600");
+    expect(description).not.toContain("text-white/");
+    expect(description).not.toContain("text-amber-100");
     expect(setters[4]).toHaveBeenCalledWith(true);
 
     renderSection({ 5: { Beta: "" } });
