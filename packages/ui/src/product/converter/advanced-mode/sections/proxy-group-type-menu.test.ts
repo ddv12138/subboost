@@ -113,6 +113,24 @@ describe("ProxyGroupTypeMenu", () => {
     expect(onChange).toHaveBeenCalledWith({ groupType: "load-balance", strategy: "sticky-sessions" });
   });
 
+  it("keeps menu and submenu text readable on light backgrounds in every highlighted state", () => {
+    renderToStaticMarkup(React.createElement(ProxyGroupTypeMenu, { value: "load-balance", onChange: vi.fn() }));
+    for (const props of [...captures.contents, ...captures.subContents]) {
+      expect(props.className).toContain("bg-white");
+      expect(props.className).toContain("text-neutral-800");
+      expect(props.className).not.toContain("bg-[#1a1a1a]");
+    }
+    for (const props of [...captures.items, ...captures.subTriggers]) {
+      expect(props.className).toContain("text-neutral-800");
+      expect(props.className).toContain("focus:text-neutral-950");
+      expect(props.className).toContain("data-[highlighted]:text-neutral-950");
+      expect(props.className).toContain("data-[state=open]:text-neutral-950");
+      expect(props.className).not.toContain("text-white");
+    }
+    expect(captures.buttons[0].className).toContain("text-neutral-800");
+    expect(captures.buttons[0].className).not.toContain("text-white");
+  });
+
   it("uses a custom trigger and falls back to the default load-balance strategy", () => {
     const onChange = vi.fn();
     const html = renderToStaticMarkup(
