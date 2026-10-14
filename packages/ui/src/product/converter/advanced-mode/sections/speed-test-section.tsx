@@ -1,13 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { Gauge, Loader2, Play, AlertTriangle, CheckCircle2, XCircle, Minus } from "lucide-react";
+import { Gauge, Loader2, Play, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import { Badge } from "@subboost/ui/components/ui/badge";
 import { Button } from "@subboost/ui/components/ui/button";
 import { Input } from "@subboost/ui/components/ui/input";
 import { Switch } from "@subboost/ui/components/ui/switch";
 import { useConfigStore } from "@subboost/ui/store/config-store";
 import { SectionHeader } from "../section-header";
+import { filterEnabledSourceNodes } from "@subboost/core/subscription/source-enabled";
 
 type SpeedTestStatus = "idle" | "running" | "done";
 
@@ -55,21 +56,19 @@ export function SpeedTestSection({
   isExpanded: boolean;
   onToggle: () => void;
 }) {
-  const { nodes, speedTest, setSpeedTest, applyNodeLatencies, generateConfig } = useConfigStore();
+  const { nodes, sources, speedTest, setSpeedTest, applyNodeLatencies, generateConfig } = useConfigStore();
+  const activeNodes = React.useMemo(() => filterEnabledSourceNodes(nodes, sources), [nodes, sources]);
 
   const enabledId = React.useId();
 
   const [status, setStatus] = React.useState<SpeedTestStatus>("idle");
-  const [reachable, setReachable] = React.useState(0);
-  const [unreachable, setUnreachable] = React.useState(0);
-  const [avgLatency, setAvgLatency] = React.useState<number | null>(null);
 
   const sortedNodes = React.useMemo(() => {
     const withLatency: { node: typeof nodes[number]; latency: number }[] = [];
     const unreachableNodes: typeof nodes = [];
     const untestedNodes: typeof nodes = [];
 
-    for (const node of nodes) {
+    for (const node of activeNodes) {
       const lat = getNodeLatency(node);
       if (lat === undefined) {
         untestedNodes.push(node);
@@ -83,19 +82,28 @@ export function SpeedTestSection({
     withLatency.sort((a, b) => a.latency - b.latency);
 
     return { sorted: withLatency, unreachable: unreachableNodes, untested: untestedNodes };
-  }, [nodes]);
+  }, [activeNodes]);
 
-  const maxOutput = speedTest.enabled ? speedTest.maxOutputNodes : nodes.length;
+  const reachable = sortedNodes.sorted.length;
+  const unreachable = sortedNodes.unreachable.length;
+  const avgLatency = reachable > 0
+    ? Math.round(sortedNodes.sorted.reduce((sum, item) => sum + item.latency, 0) / reachable)
+    : null;
+  const maxOutput = speedTest.enabled ? speedTest.maxOutputNodes : activeNodes.length;
 
   const handleSpeedTest = React.useCallback(async () => {
-    if (nodes.length === 0) return;
+    if (activeNodes.length === 0) return;
     setStatus("running");
 
     try {
       const response = await fetch("/api/speed-test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nodes, speedTest }),
+        body: JSON.stringify({
+          nodes: activeNodes,
+          sources: sources.map(({ id, enabled }) => ({ id, enabled })),
+          speedTest,
+        }),
       });
 
       if (!response.ok) {
@@ -106,26 +114,18 @@ export function SpeedTestSection({
       const data = await response.json();
       const results: Array<{ name: string; latency: number | null }> = data.results ?? [];
 
-      applyNodeLatencies(results);
+      // A source may have been disabled while the request was in flight.
+      const latest = useConfigStore.getState();
+      const activeNames = new Set(filterEnabledSourceNodes(latest.nodes, latest.sources).map((node) => node.name));
+      const requestedNames = new Set(activeNodes.map((node) => node.name));
+      applyNodeLatencies(results.filter((result) => activeNames.has(result.name) && requestedNames.has(result.name)));
       generateConfig();
-
-      const reached = results.filter((r) => r.latency !== null);
-      const notReached = results.filter((r) => r.latency === null);
-      setReachable(reached.length);
-      setUnreachable(notReached.length);
-
-      if (reached.length > 0) {
-        const sum = reached.reduce((acc, r) => acc + (r.latency ?? 0), 0);
-        setAvgLatency(Math.round(sum / reached.length));
-      } else {
-        setAvgLatency(null);
-      }
 
       setStatus("done");
     } catch {
       setStatus("idle");
     }
-  }, [nodes, speedTest, applyNodeLatencies, generateConfig]);
+  }, [activeNodes, sources, speedTest, applyNodeLatencies, generateConfig]);
 
   const renderNodeRow = (
     index: number,
@@ -150,8 +150,7 @@ export function SpeedTestSection({
     );
   };
 
-  const hasNodes = nodes.length > 0;
-  const hasList = sortedNodes.sorted.length > 0 || sortedNodes.unreachable.length > 0 || sortedNodes.untested.length > 0;
+  const hasNodes = activeNodes.length > 0;
 
   return (
     <div>
@@ -254,7 +253,7 @@ export function SpeedTestSection({
           {!hasNodes && (
             <div className="flex items-center gap-1.5 text-xs text-white/40">
               <AlertTriangle className="h-3 w-3" />
-              暂无节点，请先导入
+              {nodes.length > 0 ? "暂无启用的节点，请先启用导入源" : "暂无节点，请先导入"}
             </div>
           )}
 
@@ -262,7 +261,7 @@ export function SpeedTestSection({
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-xs text-white/50 font-medium">节点延迟排序</span>
-                <span className="text-[10px] text-white/30">（共 {nodes.length} 个）</span>
+                <span className="text-[10px] text-white/30">（共 {activeNodes.length} 个）</span>
               </div>
               <div className="max-h-48 overflow-y-auto space-y-0.5 rounded-md border border-white/10 bg-white/[0.02] p-1.5">
                 {sortedNodes.sorted.map(({ node, latency }, i) => (

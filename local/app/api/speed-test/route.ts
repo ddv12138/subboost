@@ -3,6 +3,7 @@ import { apiError, json, readJsonBody } from "@local/lib/http";
 import { measureAllNodesLatency } from "@subboost/server-core/speedtest";
 import type { ParsedNode } from "@subboost/core/types/node";
 import type { SpeedTestConfig } from "@subboost/core/types/config";
+import { filterEnabledSourceNodes } from "@subboost/core/subscription/source-enabled";
 
 export async function POST(request: Request) {
   return withCurrentAdmin(async () => {
@@ -16,12 +17,12 @@ export async function POST(request: Request) {
       return apiError("nodes must be an array.", "BAD_REQUEST", 400);
     }
 
-    const nodes = rawNodes.filter(
+    const nodes = filterEnabledSourceNodes(rawNodes.filter(
       (n): n is ParsedNode => Boolean(n) && typeof n === "object" && !Array.isArray(n)
-    );
+    ), (body as Record<string, unknown>).sources);
 
     if (nodes.length === 0) {
-      return apiError("No valid nodes provided.", "BAD_REQUEST", 400);
+      return apiError("No active valid nodes provided.", "BAD_REQUEST", 400);
     }
 
     const rawCfg = typeof rawSpeedTest === "object" && rawSpeedTest !== null

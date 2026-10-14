@@ -3,6 +3,7 @@ import { refreshNodeSnapshot } from "./refresh-node-snapshot";
 import type { ParsedNode } from "@subboost/core/types/node";
 import { SOURCE_IDS_KEY } from "@subboost/core/subscription/node-source-state";
 import * as parser from "@subboost/core/parser";
+import * as speedtest from "../speedtest";
 
 const node: ParsedNode = {
   name: "node-a",
@@ -35,6 +36,24 @@ describe("refreshNodeSnapshot", () => {
     expect(result.nodes).toHaveLength(1);
     expect(result.savedSources).toEqual(sources);
     expect(result).toMatchObject({ attemptedUrlFetch: false, refreshableSourceCount: 0, failedSourceCount: 0 });
+  });
+
+  it("probes only active nodes during automatic refresh and preserves disabled latency caches", async () => {
+    const measure = vi.spyOn(speedtest, "measureAllNodesLatency").mockImplementation(async (nodes) =>
+      nodes.map((node) => ({ ...node, _meta: { latency: 20 } }))
+    );
+    const cached = { ...node, name: "Disabled", [SOURCE_IDS_KEY]: ["off"], _meta: { latency: 1 } } as ParsedNode;
+    const manual = { ...node, name: "Manual" };
+    const result = await refreshNodeSnapshot({
+      config: {
+        sources: [{ id: "off", type: "url", content: "https://example.com/sub", enabled: false }],
+        speedTest: { enabled: true, maxOutputNodes: 5, timeout: 1000, concurrency: 10 },
+      },
+      urls: [], storedNodes: [cached, manual], fetchUrlNodes: vi.fn(),
+    });
+    expect(measure).toHaveBeenCalledWith([expect.objectContaining({ name: "Manual" })], expect.objectContaining({ enabled: true }));
+    expect(result.nodes.find((node) => node.name === "Disabled")).toMatchObject({ _meta: { latency: 1 } });
+    expect(result.nodes.find((node) => node.name === "Manual")).toMatchObject({ _meta: { latency: 20 } });
   });
 
   it("uses shared saved-source normalization for fallback URLs", async () => {

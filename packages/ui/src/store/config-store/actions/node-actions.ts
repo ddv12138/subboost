@@ -466,6 +466,8 @@ export function createNodeActions(
       setAndGenerateConfig((state) => {
         const latencyByName = new Map(results.map((r) => [r.name, r.latency]));
         const updatedNodes = state.nodes.map((node) => {
+          // Partial tests must not erase latency caches for skipped/disabled nodes.
+          if (!latencyByName.has(node.name)) return node;
           const latency = latencyByName.get(node.name) ?? null;
           const record = node as unknown as Record<string, unknown>;
           const existingMeta = record._meta as Record<string, unknown> | undefined;
