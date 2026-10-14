@@ -242,7 +242,8 @@ describe("quick mode SourcesSection", () => {
     expect(mocks.captures.inputs.some((props: any) => props.value === "HK")).toBe(true);
     expect(mocks.captures.inputs.some((props: any) => props.readOnly)).toBe(true);
     expect(mocks.captures.textareas.some((props: any) => props.value === "ss://node")).toBe(true);
-    expect(mocks.captures.switches).toEqual([expect.objectContaining({ checked: false })]);
+    expect(mocks.captures.switches.filter((props: any) => !props["aria-label"])).toEqual([expect.objectContaining({ checked: false })]);
+    expect(mocks.captures.switches.filter((props: any) => props["aria-label"])).toHaveLength(2);
   });
 
   it("updates source content and metadata through captured inputs", () => {
@@ -265,7 +266,7 @@ describe("quick mode SourcesSection", () => {
     templateInput.onChange({ target: { value: "{tag}-{name}" } });
     expect(mocks.markSourceAsPendingImport).toHaveBeenCalledWith(expect.objectContaining({ nameTemplate: "{tag}-{name}" }));
 
-    mocks.captures.switches[0].onCheckedChange(true);
+    mocks.captures.switches.find((props: any) => !props["aria-label"]).onCheckedChange(true);
     expect(mocks.markSourceAsPendingImport).toHaveBeenCalledWith(expect.objectContaining({ useProxyProviders: true }));
 
     const userinfoUrlInput = mocks.captures.inputs.find((props: any) => props.value === "https://example.com/userinfo");

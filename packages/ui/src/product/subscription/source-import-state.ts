@@ -29,6 +29,7 @@ export function markSourceAsPendingImport(source: SubscriptionSource): Subscript
 }
 
 export function isSourcePendingImport(source: SubscriptionSource): boolean {
+  if (source.enabled === false) return false;
   const content =
     source.type === "url"
       ? (tryNormalizeSubscriptionUrlInput(source.content) ?? normalizeText(source.content))

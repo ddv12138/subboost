@@ -9,6 +9,7 @@ export type SavedSourceType = "url" | "yaml" | "nodes";
 
 export type SavedSource = {
   id: string;
+  enabled?: boolean;
   type: SavedSourceType;
   content: string;
   useProxyProviders?: boolean;
@@ -88,6 +89,7 @@ export function normalizeSavedSourcesForPersistence(
 
     return {
       id: nextId(preferredId),
+      ...(record.enabled === false ? { enabled: false } : {}),
       type,
       content: type === "url" ? normalizeUrlContent(content) : content,
       ...(type === "url" && record.useProxyProviders === true ? { useProxyProviders: true } : {}),

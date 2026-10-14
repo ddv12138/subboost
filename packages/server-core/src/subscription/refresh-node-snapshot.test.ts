@@ -17,6 +17,26 @@ describe("refreshNodeSnapshot", () => {
     vi.restoreAllMocks();
   });
 
+  it("skips disabled URL, static and provider sources while preserving their caches", async () => {
+    const fetchUrlNodes = vi.fn();
+    const fetchUrlUserInfo = vi.fn();
+    const sources = [
+      { id: "off", type: "url", content: "https://example.com/sub", enabled: false, userinfoUrl: "https://example.com/info" },
+      { id: "static", type: "yaml", content: "invalid yaml", enabled: false },
+      { id: "provider", type: "url", content: "https://example.com/provider", enabled: false, useProxyProviders: true },
+    ];
+    const result = await refreshNodeSnapshot({
+      config: { sources }, urls: ["https://example.com/fallback"],
+      storedNodes: [{ ...node, [SOURCE_IDS_KEY]: ["off"] } as ParsedNode],
+      fetchUrlNodes, fetchUrlUserInfo,
+    });
+    expect(fetchUrlNodes).not.toHaveBeenCalled();
+    expect(fetchUrlUserInfo).not.toHaveBeenCalled();
+    expect(result.nodes).toHaveLength(1);
+    expect(result.savedSources).toEqual(sources);
+    expect(result).toMatchObject({ attemptedUrlFetch: false, refreshableSourceCount: 0, failedSourceCount: 0 });
+  });
+
   it("uses shared saved-source normalization for fallback URLs", async () => {
     const fetchUrlNodes = vi.fn(async () => ({
       ok: true,

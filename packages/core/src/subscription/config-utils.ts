@@ -19,6 +19,7 @@ import { DEFAULT_SPEED_TEST_CONFIG, DEFAULT_SUBBOOST_CONFIG } from "@subboost/co
 import { normalizeRuleModelFromConfig } from "@subboost/core/rules/rule-model";
 import { normalizeProxyGroupAdvancedConfig } from "@subboost/core/proxy-group-advanced";
 import { normalizeProxyGroupTargetRef } from "@subboost/core/proxy-group-targets";
+import { applyEnabledSourcesToGenerateOptions } from "./source-enabled";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -325,7 +326,7 @@ export function buildGenerateOptionsFromConfig(
       }
     : undefined;
 
-  return {
+  return applyEnabledSourcesToGenerateOptions({
     nodes: sanitizedNodes,
     ...(proxyProviders ? { proxyProviders } : {}),
     template,
@@ -338,5 +339,5 @@ export function buildGenerateOptionsFromConfig(
     ...(proxyGroupNameOverrides ? { proxyGroupNameOverrides } : {}),
     ...(proxyGroupOrder ? { proxyGroupOrder } : {}),
     ...(speedTest ? { speedTest } : {}),
-  };
+  }, config.sources);
 }

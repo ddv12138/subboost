@@ -301,6 +301,7 @@ describe("useSubscriptionLink", () => {
     const storeSources = [
       {
         id: "url-provider",
+        enabled: false,
         type: "url",
         content: " https://provider.example/sub ",
         tag: " Provider ",
@@ -337,6 +338,7 @@ describe("useSubscriptionLink", () => {
             sources: [
               expect.objectContaining({
                 id: "url-provider",
+                enabled: false,
                 content: "https://provider.example/sub",
                 tag: "Provider",
                 nameTemplate: "{name}",

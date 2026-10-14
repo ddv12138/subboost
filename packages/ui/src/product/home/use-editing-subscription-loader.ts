@@ -158,6 +158,7 @@ export function useEditingSubscriptionLoader({
                 id: typeof id === "string" && id.trim() ? id.trim() : undefined,
                 type: t as "url" | "yaml" | "nodes",
                 content: normalizedContent,
+                enabled: (item as any).enabled === false ? false : undefined,
                 lastParsedContent:
                   typeof lastParsedContent === "string" && lastParsedContent.trim()
                     ? (
@@ -191,6 +192,7 @@ export function useEditingSubscriptionLoader({
               nameTemplate?: string;
               subscriptionUserInfo?: SubscriptionUserInfo;
               useProxyProviders?: boolean;
+              enabled?: boolean;
               userinfoUrl?: string;
               userinfoUserAgent?: string;
               lastParsedTag?: string;
@@ -250,6 +252,7 @@ export function useEditingSubscriptionLoader({
                   : undefined;
             return {
               id: finalId,
+              ...(s.enabled === false ? { enabled: false } : {}),
               type: s.type,
               content: s.type === "url" ? (tryNormalizeSubscriptionUrlInput(s.content) ?? s.content.trim()) : s.content,
               ...(lastParsedContent ? { lastParsedContent } : {}),
@@ -311,6 +314,7 @@ export function useEditingSubscriptionLoader({
             const subscriptionUserInfo = normalizeSubscriptionUserInfo(s.subscriptionUserInfo);
             return {
               id: s.id,
+              ...(s.enabled === false ? { enabled: false } : {}),
               type: s.type,
               content: s.type === "url" ? (tryNormalizeSubscriptionUrlInput(s.content) ?? s.content.trim()) : s.content,
               ...(typeof s.tag === "string" && s.tag.trim() ? { tag: s.tag.trim() } : {}),
@@ -381,7 +385,7 @@ export function useEditingSubscriptionLoader({
             const count = nodeCountBySourceId.get(s.id) || 0;
             return {
               ...s,
-              parsed: true,
+              parsed: !(s.enabled === false && count === 0 && !s.useProxyProviders),
               parsing: false,
               // 若该源确实有节点归属，则显示节点数；否则不显示（但 ✅ 会变绿）
               ...(count > 0 ? { nodeCount: count } : {}),

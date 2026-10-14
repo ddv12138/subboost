@@ -348,6 +348,7 @@ export function useSubscriptionLink({
                   ...(hasSubscriptionUserInfo(sourceSubscriptionUserInfo)
                     ? { subscriptionUserInfo: sourceSubscriptionUserInfo }
                     : {}),
+                  ...(s.enabled === false ? { enabled: false } : {}),
                   ...(s.type === "url" && s.useProxyProviders ? { useProxyProviders: true } : {}),
                   ...(s.type === "url" && typeof s.userinfoUrl === "string" && s.userinfoUrl.trim()
                     ? { userinfoUrl: tryNormalizeSubscriptionUrlInput(s.userinfoUrl) ?? s.userinfoUrl.trim() }

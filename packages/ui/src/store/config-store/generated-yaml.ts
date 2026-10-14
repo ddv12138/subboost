@@ -1,6 +1,7 @@
 import { generateClashYaml } from "@subboost/core/generator";
 import { stripImportedNodeControlFieldsFromList } from "@subboost/core/subscription/imported-node-controls";
 import type { ConfigState } from "./definitions";
+import { applyEnabledSourcesToGenerateOptions, filterEnabledSourceNodes } from "@subboost/core/subscription/source-enabled";
 
 function buildProxyProvidersFromSources(
   state: ConfigState
@@ -8,7 +9,7 @@ function buildProxyProvidersFromSources(
   const out: Record<string, unknown> = {};
 
   for (const source of state.sources) {
-    if (!source || source.type !== "url" || !source.useProxyProviders) continue;
+    if (!source || source.enabled === false || source.type !== "url" || !source.useProxyProviders) continue;
     const url = typeof source.content === "string" ? source.content.trim() : "";
     if (!url) continue;
 
@@ -52,7 +53,7 @@ function buildGenerateClashYamlOptions(
   state: ConfigState,
   proxyProviders: Record<string, unknown> | undefined
 ): GenerateClashYamlOptions {
-  return {
+  return applyEnabledSourcesToGenerateOptions({
     nodes: stripImportedNodeControlFieldsFromList(state.nodes),
     proxyProviders,
     template: state.template,
@@ -80,12 +81,12 @@ function buildGenerateClashYamlOptions(
     proxyGroupNameOverrides: state.proxyGroupNameOverrides,
     proxyGroupOrder: state.proxyGroupOrder,
     speedTest: state.speedTest,
-  };
+  }, state.sources);
 }
 
 export function computeGeneratedYamlResult(state: ConfigState): GeneratedYamlResult {
   const proxyProviders = buildProxyProvidersFromSources(state);
-  const hasPreviewContent = state.nodes.length > 0 || Boolean(proxyProviders);
+  const hasPreviewContent = filterEnabledSourceNodes(state.nodes, state.sources).length > 0 || Boolean(proxyProviders);
 
   try {
     const yaml = generateClashYaml(buildGenerateClashYamlOptions(state, proxyProviders));

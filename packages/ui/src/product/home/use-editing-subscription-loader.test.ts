@@ -428,6 +428,27 @@ describe("useEditingSubscriptionLoader", () => {
     expect(restoredSources[1]).not.toHaveProperty("subscriptionUserInfo");
   });
 
+  it("restores disabled flags and leaves uncached disabled sources pending", async () => {
+    const options = makeOptions({
+      loadSubscription: vi.fn(async () => response(200, {
+        subscription: {
+          id: "sub-1", token: "token-1", urls: [],
+          nodes: [node("Cached", { _sourceIds: ["cached"] })],
+          config: { sources: [
+            { id: "cached", type: "url", content: "https://one.example/sub", enabled: false },
+            { id: "fresh", type: "nodes", content: "ss://fresh", enabled: false },
+          ] },
+        },
+      })),
+    });
+    useEditingSubscriptionLoader(options);
+    await flushAsync();
+    expect(options.setStoreSources).toHaveBeenCalledWith([
+      expect.objectContaining({ id: "cached", enabled: false, parsed: true, nodeCount: 1 }),
+      expect.objectContaining({ id: "fresh", enabled: false, parsed: false }),
+    ]);
+  });
+
   it("preserves current non-url sources when subscription urls still match", async () => {
     const { reset, generateConfig } = resetStoreState({
       sources: [

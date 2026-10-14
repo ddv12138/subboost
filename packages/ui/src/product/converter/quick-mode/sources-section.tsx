@@ -24,6 +24,7 @@ import {
   type ProductInteractionResult,
 } from "@subboost/ui/product/interactions";
 import { sourceTypeInfo } from "./constants";
+import { SourceEnabledSwitch } from "@subboost/ui/product/converter/source-enabled-switch";
 
 export function SourcesSection() {
   const [showAddMenu, setShowAddMenu] = React.useState(false);
@@ -230,7 +231,7 @@ export function SourcesSection() {
   const handleImportSource = React.useCallback(
     async (sourceId: string) => {
       const source = sources.find((item) => item.id === sourceId);
-      if (!source || !source.content.trim() || source.parsing) return;
+      if (!source || source.enabled === false || !source.content.trim() || source.parsing) return;
 
       await parseSingleSource(sourceId);
 
@@ -341,6 +342,7 @@ export function SourcesSection() {
                   )}
                 </div>
                 <div className="flex items-center gap-1">
+                  <SourceEnabledSwitch source={source} />
                   <div className="flex flex-col">
                     <button
                       onClick={() => moveSource(source.id, "up")}
@@ -371,7 +373,7 @@ export function SourcesSection() {
                   {/* 导入按钮 */}
                   <button
                     onClick={() => void handleImportSource(source.id)}
-                    disabled={!source.content.trim() || source.parsing}
+                    disabled={source.enabled === false || !source.content.trim() || source.parsing}
                     className={cn(
                       "p-1 rounded transition-colors disabled:opacity-100",
                       source.parsing

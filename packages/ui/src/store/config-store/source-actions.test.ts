@@ -16,6 +16,47 @@ const mocks = getSourceActionMocks();
 describe("createSourceActions", () => {
   beforeEach(resetSourceActionMocks);
 
+  it("preserves caches and references when toggling a source", async () => {
+    const existing = source({ id: "s1", parsed: true });
+    const cached = node("Cached", { _sourceIds: ["s1"] });
+    const { actions, getState } = createHarness({ sources: [existing], nodes: [cached], listenerPorts: { Cached: 41000 } });
+    actions.setSources([{ ...existing, enabled: false }]);
+    await actions.parseSingleSource("s1");
+    expect(mocks.parseSubscription).not.toHaveBeenCalled();
+    expect(mocks.fetchUrlContentInBrowser).not.toHaveBeenCalled();
+    expect(getState().nodes).toEqual([cached]);
+    expect(getState().listenerPorts).toEqual({ Cached: 41000 });
+    actions.setSources([{ ...existing, enabled: true }]);
+    expect(getState().nodes).toEqual([cached]);
+  });
+
+  it("keeps a source disabled when an in-flight import completes", async () => {
+    const existing = source({ id: "s1", type: "url", content: "https://example.com/sub" });
+    let resolveFetch!: (value: unknown) => void;
+    mocks.fetchUrlContentInBrowser.mockReturnValueOnce(new Promise((resolve) => { resolveFetch = resolve; }));
+    const { actions, getState } = createHarness({ sources: [existing] });
+    const pending = actions.parseSingleSource("s1");
+    actions.setSources([{ ...getState().sources[0], enabled: false }]);
+    resolveFetch({ content: "fetched", headers: {}, parseResult: parseResult([node("Cached")]) });
+    await pending;
+    expect(getState().sources[0]).toMatchObject({ enabled: false, parsed: true, parsing: false });
+    expect(getState().nodes).toHaveLength(1);
+  });
+
+  it("retains disabled-source caches during batch imports", async () => {
+    const off = source({ id: "off", enabled: false, type: "yaml", content: "disabled" });
+    const on = source({ id: "on", type: "yaml", content: "active" });
+    const cached = node("Cached", { _sourceIds: ["off"], _originName: "Cached" });
+    mocks.parseSubscription.mockReturnValueOnce(parseResult([node("New")]));
+    const { actions, getState } = createHarness({ sources: [off, on], nodes: [cached], listenerPorts: { Cached: 41000 } });
+    await actions.parseMultipleSources([off, on]);
+    expect(mocks.parseSubscription).toHaveBeenCalledTimes(1);
+    expect(mocks.parseSubscription).toHaveBeenCalledWith("active");
+    expect(getState().nodes.map((n: ParsedNode) => n.name)).toEqual(["Cached", "New"]);
+    expect(getState().listenerPorts).toEqual({ Cached: 41000 });
+    expect(getState().sources[0]).toEqual(off);
+  });
+
   it("removes nodes and references when a source is deleted", () => {
     const { actions, getState } = createHarness({
       sources: [

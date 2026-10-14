@@ -28,6 +28,7 @@ import type { SpeedTestConfig } from "@subboost/core/types/config";
 import { DEFAULT_SPEED_TEST_CONFIG } from "@subboost/core/config/defaults";
 import { normalizeSavedSourcesForPersistence, type SavedSource, type SavedSourceType } from "./saved-sources";
 import { measureAllNodesLatency } from "../speedtest";
+import { filterEnabledSourceNodes } from "@subboost/core/subscription/source-enabled";
 
 type UrlNodeFetchResult = {
   ok: boolean;
@@ -135,7 +136,7 @@ export async function refreshNodeSnapshot(
   const subscriptionInfo: SubscriptionResponseInfo = {};
   const profileWebPageUrlState: StableMetadataState = { conflicted: false };
   const planNameState: StableMetadataState = { conflicted: false };
-  const attemptedUrlFetch = savedSources.some((source) => source.type === "url" && !source.useProxyProviders);
+  const attemptedUrlFetch = savedSources.some((source) => source.enabled !== false && source.type === "url" && !source.useProxyProviders);
   let usedUrlFetch = false;
   let refreshableSourceCount = 0;
   let refreshedSourceCount = 0;
@@ -203,6 +204,7 @@ export async function refreshNodeSnapshot(
   };
 
   for (const source of savedSources) {
+    if (source.enabled === false) continue;
     if (source.type === "url" && source.useProxyProviders) {
       const detached = detachSourceNodesFromState(currentNodes, source.id);
       if (detached.nodes.length !== currentNodes.length) {
@@ -331,11 +333,11 @@ export async function refreshNodeSnapshot(
     usedUrlFetch &&
     (
       !hasSubscriptionUserInfo(subscriptionInfo) ||
-      savedSources.some((source) => source.type === "url" && shouldFetchSupplementalUserInfoForSource(source))
+      savedSources.some((source) => source.enabled !== false && source.type === "url" && shouldFetchSupplementalUserInfoForSource(source))
     )
   ) {
     for (const source of savedSources) {
-      if (source.type !== "url" || source.useProxyProviders) continue;
+      if (source.enabled === false || source.type !== "url" || source.useProxyProviders) continue;
       if (!shouldFetchSupplementalUserInfoForSource(source) && hasSubscriptionUserInfo(subscriptionInfo)) continue;
       const headers = await options.fetchUrlUserInfo(source);
       if (!headers) continue;
@@ -364,7 +366,10 @@ export async function refreshNodeSnapshot(
   };
 
   if (speedTestConfig.enabled) {
-    currentNodes = await measureAllNodesLatency(currentNodes, speedTestConfig);
+    const activeNodes = filterEnabledSourceNodes(currentNodes, savedSources);
+    const measured = await measureAllNodesLatency(activeNodes, speedTestConfig);
+    const measuredByName = new Map(measured.map((node) => [node.name, node]));
+    currentNodes = currentNodes.map((node) => measuredByName.get(node.name) ?? node);
   }
 
   return {

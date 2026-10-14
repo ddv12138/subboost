@@ -89,6 +89,20 @@ describe("computeGeneratedYamlResult", () => {
     );
   });
 
+  it("hides disabled nodes and providers but keeps their caches for re-enabling", () => {
+    const state = createState({
+      nodes: [{ name: "Cached", type: "ss", _sourceIds: ["off"] }],
+      sources: [{ id: "off", enabled: false, type: "url", content: "https://example.com/sub", useProxyProviders: true }],
+      listenerPorts: { Cached: 41000 },
+    });
+    expect(computeGeneratedYamlResult(state)).toEqual({ yaml: "", error: null });
+    expect(mocks.generateClashYaml).toHaveBeenLastCalledWith(expect.objectContaining({ nodes: [], proxyProviders: undefined }));
+    expect(state.nodes).toHaveLength(1);
+    state.sources[0].enabled = true;
+    expect(computeGeneratedYamlResult(state).yaml).toBe("generated yaml");
+    expect(mocks.generateClashYaml).toHaveBeenLastCalledWith(expect.objectContaining({ nodes: state.nodes }));
+  });
+
   it("hides generated preview output when there are no nodes or providers", () => {
     const result = computeGeneratedYamlResult(createState());
 

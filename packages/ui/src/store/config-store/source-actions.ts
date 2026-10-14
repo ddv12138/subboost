@@ -84,7 +84,11 @@ export function createSourceActions(set: SetState, get: GetState, setAndGenerate
       const removed = new Set(Array.from(prevIds).filter((id) => !nextIds.has(id)));
 
       if (removed.size === 0) {
-        set({ sources });
+        const enabledChanged = sources.some((source) =>
+          (prev.find((item) => item.id === source.id)?.enabled !== false) !== (source.enabled !== false)
+        );
+        if (enabledChanged) setAndGenerateConfig(() => ({ sources }));
+        else set({ sources });
         return;
       }
 
@@ -164,7 +168,7 @@ export function createSourceActions(set: SetState, get: GetState, setAndGenerate
     parseSingleSource: async (sourceId: string) => {
       const { sources } = get();
       const source = sources.find((s) => s.id === sourceId);
-      if (!source || !source.content.trim()) return;
+      if (!source || source.enabled === false || !source.content.trim() || source.parsing) return;
 
       const currentSourceContent =
         source.type === "url"
@@ -390,7 +394,12 @@ export function createSourceActions(set: SetState, get: GetState, setAndGenerate
     parseMultipleSources: async (sources: SubscriptionSource[]) => {
       set({ isLoading: true, parseErrors: [] });
 
-      const allNodes: ParsedNode[] = [];
+      // Preserve disabled-source caches while active sources are reimported.
+      const disabledIds = new Set(get().sources.filter((source) => source.enabled === false).map((source) => source.id));
+      const allNodes: ParsedNode[] = get().nodes.flatMap((node) => {
+        const ids = new Set(getNodeSourceIds(node).filter((id) => disabledIds.has(id)));
+        return ids.size > 0 ? [mergeNodeSourceIds(node, ids)] : [];
+      });
       const allErrors: string[] = [];
       const sourceMeta = new Map<
         string,
@@ -407,7 +416,7 @@ export function createSourceActions(set: SetState, get: GetState, setAndGenerate
       >();
 
       for (const source of sources) {
-        if (!source.content.trim()) continue;
+        if (source.enabled === false || get().sources.find((item) => item.id === source.id)?.enabled === false || !source.content.trim()) continue;
 
         try {
           let contentToParse = source.content;

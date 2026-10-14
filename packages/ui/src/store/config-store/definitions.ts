@@ -49,6 +49,7 @@ export type SourceType = "url" | "yaml" | "nodes";
 
 export interface SubscriptionSource {
   id: string;
+  enabled?: boolean;
   type: SourceType;
   content: string;
   name?: string;

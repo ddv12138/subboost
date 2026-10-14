@@ -22,7 +22,7 @@ export function buildProxyProvidersFromConfig(
   for (const raw of rawSources) {
     if (!raw || typeof raw !== "object") continue;
     const item = raw as Record<string, unknown>;
-    if (item.type !== "url") continue;
+    if (item.enabled === false || item.type !== "url") continue;
     if (item.useProxyProviders !== true) continue;
 
     const url =

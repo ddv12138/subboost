@@ -91,6 +91,7 @@ export function useHomeActions({
     const sourceCount = state.sources.filter((source) => source.content.trim()).length;
 
     for (const source of importedSources) {
+      if (source.enabled === false) continue;
       const latest = latestById.get(source.id) ?? source;
       const hasContent = latest.content.trim().length > 0;
       const result: ProductInteractionResult = !hasContent
