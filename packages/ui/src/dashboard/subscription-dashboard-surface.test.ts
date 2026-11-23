@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   toast: vi.fn(),
   clipboardWriteText: vi.fn(),
   buildRefreshSubscriptionSuccessToast: vi.fn(),
+  replaceLocation: vi.fn(),
 }));
 
 const stateMock = vi.hoisted(() => ({
@@ -235,6 +236,7 @@ describe("SubscriptionDashboardSurface", () => {
       location: {
         href: "http://localhost/dashboard",
         origin: "http://localhost",
+        replace: mocks.replaceLocation,
       },
     });
   });
@@ -243,14 +245,24 @@ describe("SubscriptionDashboardSurface", () => {
     vi.unstubAllGlobals();
   });
 
-  it("renders loading, login prompt, empty state, and quick actions", () => {
-    mocks.userStore = { user: null, isLoading: true, fetchUser: vi.fn() };
-    renderSurface();
+  it("redirects to login only after checking that the visitor is unauthenticated", async () => {
+    let finishAuthCheck!: () => void;
+    const fetchUser = vi.fn(() => new Promise<void>((resolve) => { finishAuthCheck = resolve; }));
+    mocks.userStore = { user: null, isLoading: false, fetchUser };
+    const adapter = createAdapter({ loginHref: "/sign-in" });
+    const { html, setters } = renderSurface(adapter, {}, { runEffects: true });
+    expect(fetchUser).toHaveBeenCalled();
+    expect(mocks.replaceLocation).not.toHaveBeenCalled();
+    expect(html).not.toContain("请先登录");
 
-    mocks.userStore = { user: null, isLoading: false, fetchUser: vi.fn() };
-    expect(renderSurface().html).toContain("请先登录");
+    finishAuthCheck();
+    await flushPromises();
+    expect(setters[11]).toHaveBeenCalledWith(true);
+    renderSurface(adapter, { 11: true }, { runEffects: true });
+    expect(mocks.replaceLocation).toHaveBeenCalledExactlyOnceWith("/sign-in");
+  });
 
-    mocks.userStore = { user, isLoading: false, fetchUser: vi.fn() };
+  it("renders the empty state and quick actions for authenticated visitors", () => {
     const { html } = renderSurface(createAdapter(), { 0: [], 1: false });
     expect(html).toContain("暂无订阅");
     expect(html).toContain("announcement");

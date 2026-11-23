@@ -14,7 +14,6 @@ import {
   Plus,
   RefreshCw,
   Settings,
-  Shield,
   Trash2,
 } from "lucide-react";
 
@@ -107,10 +106,22 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
   );
   const [autoUpdateHours, setAutoUpdateHours] = React.useState<number>(autoUpdatePolicy.defaultHours);
   const [savingSettings, setSavingSettings] = React.useState(false);
+  const [authChecked, setAuthChecked] = React.useState(false);
+  const loginHref = adapter.loginHref ?? "/login";
 
   React.useEffect(() => {
-    void fetchUser();
+    let cancelled = false;
+    void Promise.resolve(fetchUser())
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setAuthChecked(true);
+      });
+    return () => { cancelled = true; };
   }, [fetchUser]);
+
+  React.useEffect(() => {
+    if (authChecked && !userLoading && !user) window.location.replace(loginHref);
+  }, [authChecked, loginHref, user, userLoading]);
 
   const fetchSubscriptions = React.useCallback(async () => {
     try {
@@ -304,8 +315,7 @@ export function SubscriptionDashboardSurface({ adapter }: Props) {
     }
   };
 
-  if (userLoading) return <DashboardSkeleton />;
-  if (!user) return <LoginPrompt loginHref={adapter.loginHref ?? "/login"} />;
+  if (userLoading || !user) return <DashboardSkeleton />;
 
   const newSubscriptionHref = adapter.newSubscriptionHref ?? "/editor?newSubscription=1";
   const editSubscriptionHref = adapter.editSubscriptionHref ?? ((sub: Subscription) => `/editor?editSubscriptionId=${sub.id}`);
@@ -415,21 +425,6 @@ function DashboardSkeleton() {
             <div key={i} className="h-32 bg-white/10 rounded-xl" />
           ))}
         </div>
-      </div>
-    </div>
-  );
-}
-
-function LoginPrompt({ loginHref }: { loginHref: string }) {
-  return (
-    <div className="container mx-auto px-4 py-16 text-center">
-      <div className="max-w-md mx-auto space-y-4">
-        <Shield className="h-16 w-16 mx-auto text-white/50" />
-        <h1 className="text-2xl font-bold">请先登录</h1>
-        <p className="text-white/50">登录后可以管理您的订阅</p>
-        <Link href={loginHref}>
-          <Button size="lg">登录</Button>
-        </Link>
       </div>
     </div>
   );
