@@ -18,6 +18,7 @@ import {
 import { useConfigStore } from "@subboost/ui/store/config-store";
 import { captureAuthConfigHandoff } from "@subboost/ui/store/config-store/auth-handoff";
 import { toast } from "@subboost/ui/components/ui/toaster";
+import { withoutNodeSourceIds } from "@subboost/core/subscription/node-source-state";
 import {
   ensureNodeOriginName,
   ensureNodesHaveValidSourceIds,
@@ -373,9 +374,11 @@ export function useEditingSubscriptionLoader({
             });
           },
         });
+        const disabledSourceIds = new Set(rebuiltSources.filter((source) => source.enabled === false).map((source) => source.id));
+        const activeNodes = hydratedNodes.flatMap((node) => withoutNodeSourceIds(node, disabledSourceIds) ?? []);
         const rebuiltSourcesWithStatus = (() => {
           const nodeCountBySourceId = new Map<string, number>();
-          for (const node of hydratedNodes) {
+          for (const node of activeNodes) {
             for (const sid of getNodeSourceIds(node)) {
               nodeCountBySourceId.set(sid, (nodeCountBySourceId.get(sid) || 0) + 1);
             }
@@ -385,7 +388,7 @@ export function useEditingSubscriptionLoader({
             const count = nodeCountBySourceId.get(s.id) || 0;
             return {
               ...s,
-              parsed: !(s.enabled === false && count === 0 && !s.useProxyProviders),
+              parsed: s.enabled !== false,
               parsing: false,
               // 若该源确实有节点归属，则显示节点数；否则不显示（但 ✅ 会变绿）
               ...(count > 0 ? { nodeCount: count } : {}),
@@ -476,11 +479,15 @@ export function useEditingSubscriptionLoader({
         const listenerPortsFromCfg = (() => {
           const raw = (cfg as any).listenerPorts;
           if (!raw || typeof raw !== "object") return {};
-          const activeNames = new Set(hydratedNodes.map((n) => n.name));
+          const activeNames = new Set(activeNodes.map((n) => n.name));
+          const deletedNames = new Set([
+            ...deletedNodeNamesMerged,
+            ...deletedNodesFromCfg.map((node) => node.name),
+          ]);
           const out: Record<string, number> = {};
           for (const [name, port] of Object.entries(raw as Record<string, unknown>)) {
             if (typeof name !== "string" || !name.trim()) continue;
-            if (!activeNames.has(name)) continue;
+            if (!activeNames.has(name) && (disabledSourceIds.size === 0 || deletedNames.has(name))) continue;
             if (typeof port !== "number" || !Number.isInteger(port) || port < 1 || port > 65535) continue;
             out[name] = port;
           }
@@ -505,7 +512,7 @@ export function useEditingSubscriptionLoader({
 
         useConfigStore.setState((state) => ({
           ...state,
-          nodes: hydratedNodes,
+          nodes: activeNodes,
           deletedNodeNames: deletedNodeNamesMerged.length > 0 ? deletedNodeNamesMerged : state.deletedNodeNames,
           deletedNodes:
             deletedNodesFromCfg.length > 0

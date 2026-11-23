@@ -18,7 +18,7 @@ describe("refreshNodeSnapshot", () => {
     vi.restoreAllMocks();
   });
 
-  it("skips disabled URL, static and provider sources while preserving their caches", async () => {
+  it("skips disabled URL, static and provider sources and discards their old nodes", async () => {
     const fetchUrlNodes = vi.fn();
     const fetchUrlUserInfo = vi.fn();
     const sources = [
@@ -33,12 +33,12 @@ describe("refreshNodeSnapshot", () => {
     });
     expect(fetchUrlNodes).not.toHaveBeenCalled();
     expect(fetchUrlUserInfo).not.toHaveBeenCalled();
-    expect(result.nodes).toHaveLength(1);
+    expect(result.nodes).toEqual([]);
     expect(result.savedSources).toEqual(sources);
     expect(result).toMatchObject({ attemptedUrlFetch: false, refreshableSourceCount: 0, failedSourceCount: 0 });
   });
 
-  it("probes only active nodes during automatic refresh and preserves disabled latency caches", async () => {
+  it("probes only active nodes and does not keep old nodes from disabled sources", async () => {
     const measure = vi.spyOn(speedtest, "measureAllNodesLatency").mockImplementation(async (nodes) =>
       nodes.map((node) => ({ ...node, _meta: { latency: 20 } }))
     );
@@ -52,7 +52,7 @@ describe("refreshNodeSnapshot", () => {
       urls: [], storedNodes: [cached, manual], fetchUrlNodes: vi.fn(),
     });
     expect(measure).toHaveBeenCalledWith([expect.objectContaining({ name: "Manual" })], expect.objectContaining({ enabled: true }));
-    expect(result.nodes.find((node) => node.name === "Disabled")).toMatchObject({ _meta: { latency: 1 } });
+    expect(result.nodes.find((node) => node.name === "Disabled")).toBeUndefined();
     expect(result.nodes.find((node) => node.name === "Manual")).toMatchObject({ _meta: { latency: 20 } });
   });
 

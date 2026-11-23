@@ -28,7 +28,6 @@ import type { SpeedTestConfig } from "@subboost/core/types/config";
 import { DEFAULT_SPEED_TEST_CONFIG } from "@subboost/core/config/defaults";
 import { normalizeSavedSourcesForPersistence, type SavedSource, type SavedSourceType } from "./saved-sources";
 import { measureAllNodesLatency } from "../speedtest";
-import { filterEnabledSourceNodes } from "@subboost/core/subscription/source-enabled";
 
 type UrlNodeFetchResult = {
   ok: boolean;
@@ -122,7 +121,7 @@ export async function refreshNodeSnapshot(
     fallbackUrls: options.urls,
   });
   let refreshedSavedSources = savedSources.map((source) => ({ ...source }));
-  const validSourceIds = new Set(savedSources.map((source) => source.id));
+  const activeSourceIds = new Set(savedSources.filter((source) => source.enabled !== false).map((source) => source.id));
   const deletedNodeNames = getDeletedNodeNames(options.config);
   const deletedNodes = getDeletedNodes(options.config);
   const smartNodeMatchingEnabled = resolveSmartNodeMatchingEnabled(options.config);
@@ -130,7 +129,7 @@ export async function refreshNodeSnapshot(
   let currentNodes = options.storedNodes
     .map(stripImportedNodeControlFields)
     .map(normalizeNodeOriginName)
-    .map((node) => keepOnlyValidNodeSourceIds(node, validSourceIds))
+    .map((node) => keepOnlyValidNodeSourceIds(node, activeSourceIds))
     .filter(Boolean) as ParsedNode[];
 
   const subscriptionInfo: SubscriptionResponseInfo = {};
@@ -366,8 +365,7 @@ export async function refreshNodeSnapshot(
   };
 
   if (speedTestConfig.enabled) {
-    const activeNodes = filterEnabledSourceNodes(currentNodes, savedSources);
-    const measured = await measureAllNodesLatency(activeNodes, speedTestConfig);
+    const measured = await measureAllNodesLatency(currentNodes, speedTestConfig);
     const measuredByName = new Map(measured.map((node) => [node.name, node]));
     currentNodes = currentNodes.map((node) => measuredByName.get(node.name) ?? node);
   }

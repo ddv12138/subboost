@@ -17,7 +17,7 @@ afterEach(() => {
 });
 
 describe("SourceEnabledSwitch", () => {
-  it("defaults old sources to enabled and stops output without discarding caches", () => {
+  it("removes old nodes on disable and reimports a previously parsed source on enable", () => {
     const source: SubscriptionSource = { id: "s", type: "nodes", content: "trojan://secret@example.com:443#Cached", parsed: true };
     const { props, parseSingleSource } = setup(source);
     const cached = { name: "Cached", type: "trojan" as const, server: "example.com", port: 443, password: "secret", _sourceIds: ["s"] };
@@ -28,12 +28,12 @@ describe("SourceEnabledSwitch", () => {
     props.onCheckedChange(false);
     expect(useConfigStore.getState().sources[0].enabled).toBe(false);
     expect(useConfigStore.getState().generatedYaml).toBe("");
-    expect(useConfigStore.getState().nodes).toEqual([cached]);
+    expect(useConfigStore.getState().nodes).toEqual([]);
     expect(useConfigStore.getState().listenerPorts).toEqual({ Cached: 41000 });
     expect(parseSingleSource).not.toHaveBeenCalled();
     props.onCheckedChange(true);
-    expect(useConfigStore.getState().generatedYaml).toContain("Cached");
-    expect(parseSingleSource).not.toHaveBeenCalled();
+    expect(useConfigStore.getState().generatedYaml).toBe("");
+    expect(parseSingleSource).toHaveBeenCalledExactlyOnceWith("s");
   });
 
   it("imports an unparsed source when enabled", () => {
@@ -48,7 +48,7 @@ describe("SourceEnabledSwitch", () => {
     const { props, parseSingleSource } = setup(source);
     props.onCheckedChange(true);
     expect(parseSingleSource).toHaveBeenCalledTimes(1);
-    useConfigStore.setState({ sources: [{ ...source, parsing: true }] });
+    useConfigStore.setState((state) => ({ sources: [{ ...state.sources[0], parsing: true }] }));
     props.onCheckedChange(true);
     expect(parseSingleSource).toHaveBeenCalledTimes(1);
   });

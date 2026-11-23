@@ -16,18 +16,20 @@ const mocks = getSourceActionMocks();
 describe("createSourceActions", () => {
   beforeEach(resetSourceActionMocks);
 
-  it("preserves caches and references when toggling a source", async () => {
+  it("discards disabled nodes but keeps shared nodes and settings", async () => {
     const existing = source({ id: "s1", parsed: true });
+    const other = source({ id: "s2" });
     const cached = node("Cached", { _sourceIds: ["s1"] });
-    const { actions, getState } = createHarness({ sources: [existing], nodes: [cached], listenerPorts: { Cached: 41000 } });
-    actions.setSources([{ ...existing, enabled: false }]);
+    const shared = node("Shared", { _sourceIds: ["s1", "s2"] });
+    const { actions, getState } = createHarness({ sources: [existing, other], nodes: [cached, shared], listenerPorts: { Cached: 41000 } });
+    actions.setSources([{ ...existing, enabled: false }, other]);
     await actions.parseSingleSource("s1");
     expect(mocks.parseSubscription).not.toHaveBeenCalled();
     expect(mocks.fetchUrlContentInBrowser).not.toHaveBeenCalled();
-    expect(getState().nodes).toEqual([cached]);
+    expect(getState().nodes).toEqual([{ ...shared, _sourceIds: ["s2"] }]);
     expect(getState().listenerPorts).toEqual({ Cached: 41000 });
-    actions.setSources([{ ...existing, enabled: true }]);
-    expect(getState().nodes).toEqual([cached]);
+    actions.setSources([{ ...existing, enabled: true }, other]);
+    expect(getState().nodes).toEqual([{ ...shared, _sourceIds: ["s2"] }]);
   });
 
   it("keeps a source disabled when an in-flight import completes", async () => {
@@ -39,11 +41,43 @@ describe("createSourceActions", () => {
     actions.setSources([{ ...getState().sources[0], enabled: false }]);
     resolveFetch({ content: "fetched", headers: {}, parseResult: parseResult([node("Cached")]) });
     await pending;
-    expect(getState().sources[0]).toMatchObject({ enabled: false, parsed: true, parsing: false });
-    expect(getState().nodes).toHaveLength(1);
+    expect(getState().sources[0]).toMatchObject({ enabled: false, parsed: false, parsing: false });
+    expect(getState().nodes).toEqual([]);
   });
 
-  it("retains disabled-source caches during batch imports", async () => {
+  it("uses the new URL response after re-enabling, ignoring an earlier batch response", async () => {
+    const url = "https://example.com/sub";
+    const existing = source({ id: "s1", type: "url", content: url, parsed: true });
+    let resolveOldFetch!: (value: unknown) => void;
+    mocks.fetchUrlContentInBrowser
+      .mockReturnValueOnce(new Promise((resolve) => { resolveOldFetch = resolve; }))
+      .mockResolvedValueOnce({ content: "latest", headers: {}, parseResult: parseResult([node("Latest")]) });
+    const { actions, getState } = createHarness({
+      sources: [existing],
+      nodes: [node("Cached", { _sourceIds: ["s1"] })],
+    });
+    const pendingBatch = actions.parseMultipleSources([existing]);
+    actions.setSources([{ ...existing, enabled: false }]);
+    actions.setSources([{ ...getState().sources[0], enabled: true }]);
+    await actions.parseSingleSource("s1");
+    resolveOldFetch({ content: "old", headers: {}, parseResult: parseResult([node("Old")]) });
+    await pendingBatch;
+    expect(mocks.fetchUrlContentInBrowser).toHaveBeenCalledTimes(2);
+    expect(getState().nodes.map((item: ParsedNode) => item.name)).toEqual(["Latest"]);
+  });
+
+  it("does not bring back old nodes when reimport fails", async () => {
+    const existing = source({ id: "s1", type: "url", content: "https://example.com/sub", parsed: true });
+    const { actions, getState } = createHarness({ sources: [existing], nodes: [node("Cached", { _sourceIds: ["s1"] })] });
+    mocks.fetchUrlContentInBrowser.mockRejectedValueOnce(new Error("Fetch failed"));
+    actions.setSources([{ ...existing, enabled: false }]);
+    actions.setSources([{ ...getState().sources[0], enabled: true }]);
+    await actions.parseSingleSource("s1");
+    expect(getState().sources[0]).toMatchObject({ enabled: true, parsed: false, error: "Fetch failed" });
+    expect(getState().nodes).toEqual([]);
+  });
+
+  it("discards legacy disabled-source nodes during batch imports", async () => {
     const off = source({ id: "off", enabled: false, type: "yaml", content: "disabled" });
     const on = source({ id: "on", type: "yaml", content: "active" });
     const cached = node("Cached", { _sourceIds: ["off"], _originName: "Cached" });
@@ -52,7 +86,7 @@ describe("createSourceActions", () => {
     await actions.parseMultipleSources([off, on]);
     expect(mocks.parseSubscription).toHaveBeenCalledTimes(1);
     expect(mocks.parseSubscription).toHaveBeenCalledWith("active");
-    expect(getState().nodes.map((n: ParsedNode) => n.name)).toEqual(["Cached", "New"]);
+    expect(getState().nodes.map((n: ParsedNode) => n.name)).toEqual(["New"]);
     expect(getState().listenerPorts).toEqual({ Cached: 41000 });
     expect(getState().sources[0]).toEqual(off);
   });

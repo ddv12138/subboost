@@ -74,32 +74,72 @@ function filterDialerProxyGroupsByAvailableNames(
   }));
 }
 
+// A temporarily absent node can still have user settings that should survive a refresh.
+function getRetainedReferenceNames(state: StoreState, nextNodes: ParsedNode[], preserveAbsent: boolean): Set<string> {
+  const retainedNames = new Set(nextNodes.map((node) => node.name));
+  if (!preserveAbsent) return retainedNames;
+  const currentNames = new Set(state.nodes.map((node) => node.name));
+  const referenceNames = [
+    ...Object.keys(state.listenerPorts),
+    ...state.dialerProxyGroups.flatMap((group) => [...group.relayNodes, ...group.targetNodes]),
+  ];
+  for (const name of referenceNames) {
+    if (!currentNames.has(name)) retainedNames.add(name);
+  }
+  return retainedNames;
+}
+
 export function createSourceActions(set: SetState, get: GetState, setAndGenerateConfig: SetAndGenerateConfig): SourceActions {
+  const importRevisions = new Map<string, symbol>();
+  const reactivatingIds = new Set<string>();
+  const preserveAbsentReferences = (state: StoreState) => state.sources.some((source) =>
+    source.enabled === false || reactivatingIds.has(source.id)
+  );
   return {
     // 设置订阅源
     setSources: (sources: SubscriptionSource[]) => {
       const prev = get().sources;
-      const prevIds = new Set(prev.map((s) => s.id));
-      const nextIds = new Set(sources.map((s) => s.id));
-      const removed = new Set(Array.from(prevIds).filter((id) => !nextIds.has(id)));
+      const prevById = new Map(prev.map((source) => [source.id, source]));
+      const nextIds = new Set(sources.map((source) => source.id));
+      const removed = new Set(prev.filter((source) => !nextIds.has(source.id)).map((source) => source.id));
+      for (const id of removed) {
+        importRevisions.delete(id);
+        reactivatingIds.delete(id);
+      }
 
-      if (removed.size === 0) {
-        const enabledChanged = sources.some((source) =>
-          (prev.find((item) => item.id === source.id)?.enabled !== false) !== (source.enabled !== false)
-        );
-        if (enabledChanged) setAndGenerateConfig(() => ({ sources }));
-        else set({ sources });
+      const detachedIds = new Set(removed);
+      let enabledChanged = false;
+      const nextSources = sources.map((source) => {
+        const previous = prevById.get(source.id);
+        const disabled = source.enabled === false;
+        if (disabled || previous?.enabled === false) detachedIds.add(source.id);
+        if ((previous?.enabled === false) === disabled) return source;
+        enabledChanged = true;
+        importRevisions.set(source.id, Symbol());
+        if (disabled) reactivatingIds.delete(source.id);
+        else reactivatingIds.add(source.id);
+        return {
+          ...source,
+          parsed: false,
+          parsing: false,
+          nodeCount: undefined,
+          subscriptionUserInfo: undefined,
+          error: undefined,
+          errorInfo: undefined,
+        };
+      });
+
+      if (!enabledChanged && removed.size === 0) {
+        set({ sources: nextSources });
         return;
       }
 
       setAndGenerateConfig((state) => {
-        const nextNodes: ParsedNode[] = [];
-        for (const node of state.nodes) {
-          const next = withoutNodeSourceIds(node, removed);
-          if (next) nextNodes.push(next);
-        }
+        const nextNodes = state.nodes.flatMap((node) => withoutNodeSourceIds(node, detachedIds) ?? []);
+        if (removed.size === 0) return { sources: nextSources, nodes: nextNodes };
 
-        const availableNames = new Set(nextNodes.map((n) => n.name));
+        const namesAfterRemoval = state.nodes.flatMap((node) => withoutNodeSourceIds(node, removed) ?? []).map((node) => node.name);
+        const availableNames = new Set(namesAfterRemoval);
         const nextListenerPorts: Record<string, number> = {};
         for (const [name, port] of Object.entries(state.listenerPorts)) {
           if (!availableNames.has(name)) continue;
@@ -110,7 +150,7 @@ export function createSourceActions(set: SetState, get: GetState, setAndGenerate
         const nextDialerProxyGroups = filterDialerProxyGroupsByAvailableNames(state.dialerProxyGroups, availableNames);
 
         return {
-          sources,
+          sources: nextSources,
           nodes: nextNodes,
           listenerPorts: nextListenerPorts,
           dialerProxyGroups: nextDialerProxyGroups,
@@ -169,6 +209,10 @@ export function createSourceActions(set: SetState, get: GetState, setAndGenerate
       const { sources } = get();
       const source = sources.find((s) => s.id === sourceId);
       if (!source || source.enabled === false || !source.content.trim() || source.parsing) return;
+      const revision = Symbol();
+      importRevisions.set(sourceId, revision);
+      const isCurrent = (state: StoreState) => importRevisions.get(sourceId) === revision &&
+        state.sources.some((item) => item.id === sourceId && item.enabled !== false && item.parsing);
 
       const currentSourceContent =
         source.type === "url"
@@ -211,7 +255,8 @@ export function createSourceActions(set: SetState, get: GetState, setAndGenerate
           setAndGenerateConfig((state) => {
             const baseNodes = detachSourceNodesFromState(state.nodes, sourceId).nodes;
 
-            const availableNames = new Set(baseNodes.map((n) => n.name));
+            const availableNames = getRetainedReferenceNames(state, baseNodes, preserveAbsentReferences(state));
+            reactivatingIds.delete(sourceId);
             const nextListenerPorts: Record<string, number> = {};
             for (const [name, port] of Object.entries(state.listenerPorts)) {
               if (!availableNames.has(name)) continue;
@@ -285,6 +330,7 @@ export function createSourceActions(set: SetState, get: GetState, setAndGenerate
 
         // 刷新此订阅源解析出的节点：尽量保留用户顺序/手动改名，仅更新节点内容与来源归属。
         setAndGenerateConfig((state) => {
+          if (!isCurrent(state)) return state;
           const merged = mergeParsedSourceNodes(state.nodes, parsedNodes, state.deletedNodeNames, {
             sourceId,
             currentTag,
@@ -296,7 +342,8 @@ export function createSourceActions(set: SetState, get: GetState, setAndGenerate
           });
 
           const nextNodes = merged.nodes;
-          const availableNames = new Set(nextNodes.map((n) => n.name));
+          const availableNames = getRetainedReferenceNames(state, nextNodes, preserveAbsentReferences(state));
+          reactivatingIds.delete(sourceId);
           const nextListenerPorts: Record<string, number> = {};
           for (const [name, port] of Object.entries(state.listenerPorts)) {
             const mappedName = merged.renameMap.get(name) ?? name;
@@ -373,7 +420,7 @@ export function createSourceActions(set: SetState, get: GetState, setAndGenerate
               suggestedActions: [...baseInfo.suggestedActions, hint],
             }
           : baseInfo;
-        set((state) => ({
+        set((state) => !isCurrent(state) ? state : ({
           sources: state.sources.map((s) =>
             s.id === sourceId
               ? {
@@ -394,12 +441,10 @@ export function createSourceActions(set: SetState, get: GetState, setAndGenerate
     parseMultipleSources: async (sources: SubscriptionSource[]) => {
       set({ isLoading: true, parseErrors: [] });
 
-      // Preserve disabled-source caches while active sources are reimported.
-      const disabledIds = new Set(get().sources.filter((source) => source.enabled === false).map((source) => source.id));
-      const allNodes: ParsedNode[] = get().nodes.flatMap((node) => {
-        const ids = new Set(getNodeSourceIds(node).filter((id) => disabledIds.has(id)));
-        return ids.size > 0 ? [mergeNodeSourceIds(node, ids)] : [];
-      });
+      const revisions = new Map(sources.map((source) => [source.id, importRevisions.get(source.id)]));
+      const canApply = (id: string) => importRevisions.get(id) === revisions.get(id) &&
+        get().sources.some((source) => source.id === id && source.enabled !== false);
+      const allNodes: ParsedNode[] = [];
       const allErrors: string[] = [];
       const sourceMeta = new Map<
         string,
@@ -416,7 +461,7 @@ export function createSourceActions(set: SetState, get: GetState, setAndGenerate
       >();
 
       for (const source of sources) {
-        if (source.enabled === false || get().sources.find((item) => item.id === source.id)?.enabled === false || !source.content.trim()) continue;
+        if (source.enabled === false || !canApply(source.id) || !source.content.trim()) continue;
 
         try {
           let contentToParse = source.content;
@@ -552,9 +597,19 @@ export function createSourceActions(set: SetState, get: GetState, setAndGenerate
         }
       }
 
+      // Discard results superseded by a toggle or a newer single import.
+      const supersededIds = new Set(get().sources.filter((source) =>
+        source.enabled !== false && revisions.has(source.id) && !canApply(source.id)
+      ).map((source) => source.id));
+      const candidates = allNodes.filter((node) => getNodeSourceIds(node).every(canApply));
+      for (const node of get().nodes) {
+        const ids = getNodeSourceIds(node).filter((id) => supersededIds.has(id));
+        if (ids.length > 0) candidates.push(mergeNodeSourceIds(node, new Set(ids)));
+      }
+
       // 去重节点（基于 originName + 节点内容）
       const uniqueNodeMap = new Map<string, ParsedNode>();
-      for (const node of allNodes) {
+      for (const node of candidates) {
         const record = node as unknown as Record<string, unknown>;
         const origin =
           typeof record[ORIGIN_NAME_KEY] === "string" && String(record[ORIGIN_NAME_KEY]).trim()
@@ -624,7 +679,9 @@ export function createSourceActions(set: SetState, get: GetState, setAndGenerate
             return !deleted.has(origin);
           });
 
-        const availableNames = new Set(normalized.map((n) => n.name));
+        const disabledIds = new Set(state.sources.filter((source) => source.enabled === false).map((source) => source.id));
+        const previouslyActive = state.nodes.filter((node) => withoutNodeSourceIds(node, disabledIds) !== null);
+        const availableNames = getRetainedReferenceNames({ ...state, nodes: previouslyActive }, normalized, preserveAbsentReferences(state));
         const nextListenerPorts: Record<string, number> = {};
         for (const [name, port] of Object.entries(state.listenerPorts)) {
           if (!availableNames.has(name)) continue;
@@ -641,7 +698,8 @@ export function createSourceActions(set: SetState, get: GetState, setAndGenerate
           dialerProxyGroups: nextDialerProxyGroups,
           sources: state.sources.map((s) => {
             const meta = sourceMeta.get(s.id);
-            if (!meta) return s;
+            if (!meta || !canApply(s.id)) return s;
+            if (meta.parsed) reactivatingIds.delete(s.id);
             return {
               ...s,
               parsed: meta.parsed,

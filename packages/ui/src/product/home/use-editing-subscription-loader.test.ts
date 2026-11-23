@@ -428,15 +428,16 @@ describe("useEditingSubscriptionLoader", () => {
     expect(restoredSources[1]).not.toHaveProperty("subscriptionUserInfo");
   });
 
-  it("restores disabled flags and leaves uncached disabled sources pending", async () => {
+  it("restores disabled flags without loading old nodes from disabled sources", async () => {
     const options = makeOptions({
       loadSubscription: vi.fn(async () => response(200, {
         subscription: {
           id: "sub-1", token: "token-1", urls: [],
-          nodes: [node("Cached", { _sourceIds: ["cached"] })],
+          nodes: [node("Cached", { _sourceIds: ["cached"] }), node("Shared", { _sourceIds: ["cached", "active"] })],
           config: { sources: [
             { id: "cached", type: "url", content: "https://one.example/sub", enabled: false },
             { id: "fresh", type: "nodes", content: "ss://fresh", enabled: false },
+            { id: "active", type: "url", content: "https://two.example/sub" },
           ] },
         },
       })),
@@ -444,9 +445,11 @@ describe("useEditingSubscriptionLoader", () => {
     useEditingSubscriptionLoader(options);
     await flushAsync();
     expect(options.setStoreSources).toHaveBeenCalledWith([
-      expect.objectContaining({ id: "cached", enabled: false, parsed: true, nodeCount: 1 }),
+      expect.objectContaining({ id: "cached", enabled: false, parsed: false }),
       expect.objectContaining({ id: "fresh", enabled: false, parsed: false }),
+      expect.objectContaining({ id: "active", parsed: true, nodeCount: 1 }),
     ]);
+    expect(mocks.bag.storeState.nodes).toEqual([expect.objectContaining({ name: "Shared", _sourceIds: ["active"] })]);
   });
 
   it("preserves current non-url sources when subscription urls still match", async () => {
